@@ -1,0 +1,320 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Tạo hàng loạt tài khoản giảng viên - Admin Panel{% endblock %}
+{% block page_title %}Tạo hàng loạt tài khoản giảng viên{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-file-csv me-2"></i>Tạo hàng loạt tài khoản giảng viên
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        <form method="post" enctype="multipart/form-data" class="admin-form">
+            {% csrf_token %}
+            
+            <!-- File Upload Section -->
+            <div class="row">
+                <div class="col-md-8">
+                    <h6 class="mb-3 text-primary">
+                        <i class="fas fa-upload me-2"></i>Tải lên file CSV
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.csv_file.id_for_label }}" class="form-label">
+                            <i class="fas fa-file-csv me-2"></i>Chọn file CSV
+                        </label>
+                        {{ form.csv_file }}
+                        {% if form.csv_file.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.csv_file.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">
+                            File CSV phải có các cột: email, first_name, last_name, department, phone (tùy chọn), bio (tùy chọn)
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <h6 class="mb-3 text-primary">
+                        <i class="fas fa-download me-2"></i>Mẫu file CSV
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <a href="#" class="btn btn-admin btn-admin-success w-100" onclick="downloadSample()">
+                            <i class="fas fa-download me-2"></i>Tải mẫu CSV
+                        </a>
+                    </div>
+                    
+                    <div class="alert alert-info admin-alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Lưu ý:</strong> File CSV phải được mã hóa UTF-8 và có header row.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Password Options Section -->
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <h6 class="mb-3 text-primary">
+                        <i class="fas fa-key me-2"></i>Tùy chọn mật khẩu
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Chọn cách tạo mật khẩu:</label>
+                        {% for radio in form.password_option %}
+                            <div class="form-check">
+                                {{ radio }}
+                                <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                    {{ radio.choice_label }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                        {% if form.password_option.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.password_option.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3" id="custom-password-section" style="display: none;">
+                        <label for="{{ form.custom_password.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Mật khẩu tùy chỉnh
+                        </label>
+                        {{ form.custom_password }}
+                        {% if form.custom_password.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.custom_password.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">
+                            Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="alert alert-info admin-alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Thông tin mật khẩu
+                        </h6>
+                        <p class="mb-2">
+                            <strong>Tự động tạo:</strong> Sử dụng mật khẩu mặc định <code>Teacher@123</code>
+                        </p>
+                        <p class="mb-0">
+                            <strong>Tùy chỉnh:</strong> Nhập mật khẩu riêng cho tất cả tài khoản
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other Options Section -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h6 class="mb-3 text-primary">
+                        <i class="fas fa-cog me-2"></i>Tùy chọn khác
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.send_welcome_email }}
+                            <label class="form-check-label" for="{{ form.send_welcome_email.id_for_label }}">
+                                {{ form.send_welcome_email.label }}
+                            </label>
+                        </div>
+                        {% if form.send_welcome_email.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.send_welcome_email.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.skip_errors }}
+                            <label class="form-check-label" for="{{ form.skip_errors.id_for_label }}">
+                                {{ form.skip_errors.label }}
+                            </label>
+                        </div>
+                        {% if form.skip_errors.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.skip_errors.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.skip_errors.help_text %}
+                            <small class="text-muted">{{ form.skip_errors.help_text }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'core:admin_user_list' %}" class="btn btn-admin btn-admin-warning">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                        <div>
+                            <button type="reset" class="btn btn-admin btn-admin-danger me-2">
+                                <i class="fas fa-undo me-2"></i>Làm mới
+                            </button>
+                            <button type="submit" class="btn btn-admin btn-admin-primary">
+                                <i class="fas fa-upload me-2"></i>Tạo tài khoản hàng loạt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Instructions Card -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-info-circle me-2"></i>Hướng dẫn sử dụng
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-primary">Cấu trúc file CSV:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Cột</th>
+                                <th>Bắt buộc</th>
+                                <th>Mô tả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>email</code></td>
+                                <td><span class="badge bg-danger">Có</span></td>
+                                <td>Email (duy nhất)</td>
+                            </tr>
+                            <tr>
+                                <td><code>first_name</code></td>
+                                <td><span class="badge bg-danger">Có</span></td>
+                                <td>Họ</td>
+                            </tr>
+                            <tr>
+                                <td><code>last_name</code></td>
+                                <td><span class="badge bg-danger">Có</span></td>
+                                <td>Tên</td>
+                            </tr>
+                            <tr>
+                                <td><code>department</code></td>
+                                <td><span class="badge bg-danger">Có</span></td>
+                                <td>Khoa/Ngành (cntt, kt, nn, sk, khac)</td>
+                            </tr>
+                            <tr>
+                                <td><code>phone</code></td>
+                                <td><span class="badge bg-warning">Tùy chọn</span></td>
+                                <td>Số điện thoại</td>
+                            </tr>
+                            <tr>
+                                <td><code>bio</code></td>
+                                <td><span class="badge bg-warning">Tùy chọn</span></td>
+                                <td>Giới thiệu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h6 class="text-primary">Ví dụ file CSV:</h6>
+                <div class="bg-light p-3 rounded">
+                    <pre class="mb-0"><code>email,first_name,last_name,department,phone,bio
+nguyen.van.a@example.com,Nguyễn,Văn A,cntt,0123456789,Giảng viên CNTT
+tran.thi.b@example.com,Trần,Thị B,kt,0987654321,Giảng viên Kinh tế
+le.van.c@example.com,Lê,Văn C,nn,0369852147,Giảng viên Ngoại ngữ</code></pre>
+                </div>
+                
+                <div class="mt-3">
+                    <h6 class="text-primary">Lưu ý quan trọng:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>File phải được mã hóa UTF-8</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Dòng đầu tiên phải là header</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Email phải duy nhất</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Username sẽ được tạo tự động: gv + chuỗi ngẫu nhiên</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Mật khẩu mặc định: Teacher@123</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload preview
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileLabel = fileInput.nextElementSibling;
+    
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const fileName = this.files[0].name;
+            fileLabel.textContent = fileName;
+        }
+    });
+
+    // Password option toggle
+    const passwordOptionRadios = document.querySelectorAll('input[name="password_option"]');
+    const customPasswordSection = document.getElementById('custom-password-section');
+
+    passwordOptionRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customPasswordSection.style.display = 'block';
+            } else {
+                customPasswordSection.style.display = 'none';
+            }
+        });
+    });
+
+    // Initial call to set correct display on page load
+    const initialPasswordOption = document.querySelector('input[name="password_option"]:checked');
+    if (initialPasswordOption && initialPasswordOption.value === 'custom') {
+        customPasswordSection.style.display = 'block';
+    } else {
+        customPasswordSection.style.display = 'none';
+    }
+});
+
+function downloadSample() {
+    const sampleData = `email,first_name,last_name,department,phone,bio
+nguyen.van.a@example.com,Nguyễn,Văn A,cntt,0123456789,Giảng viên CNTT
+tran.thi.b@example.com,Trần,Thị B,kt,0987654321,Giảng viên Kinh tế
+le.van.c@example.com,Lê,Văn C,nn,0369852147,Giảng viên Ngoại ngữ`;
+
+    const blob = new Blob([sampleData], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'teacher_accounts_sample.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %} 

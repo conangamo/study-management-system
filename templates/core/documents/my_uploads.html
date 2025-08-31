@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Tài liệu của tôi{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Tài liệu của tôi</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'core:document_list' %}">Tài liệu</a></li>
+                    <li class="breadcrumb-item active">Của tôi</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title">Tài liệu đã tải lên</h5>
+                        <a href="{% url 'core:document_upload' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Tải lên tài liệu
+                        </a>
+                    </div>
+                    
+                    <div class="row">
+                        {% for document in documents %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ document.title }}</h6>
+                                    <p class="card-text">{{ document.description|truncatechars:100 }}</p>
+                                    <p class="text-muted">
+                                        <small>Tải lên: {{ document.created_at|date:"d/m/Y" }}</small><br>
+                                        <small>Lượt tải: {{ document.download_count }}</small>
+                                    </p>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'core:document_detail' document.pk %}" class="btn btn-outline-primary">Xem</a>
+                                        <a href="{% url 'core:document_edit' document.pk %}" class="btn btn-outline-secondary">Sửa</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle"></i> Bạn chưa tải lên tài liệu nào.
+                                <br>
+                                <a href="{% url 'core:document_upload' %}" class="btn btn-primary mt-2">
+                                    <i class="fas fa-plus"></i> Tải lên tài liệu đầu tiên
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if documents.has_other_pages %}
+                    <nav aria-label="Document pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if documents.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ documents.previous_page_number }}">Trước</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">{{ documents.number }}</span>
+                            </li>
+                            
+                            {% if documents.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ documents.next_page_number }}">Sau</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

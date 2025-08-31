@@ -1,0 +1,126 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}Môn học của tôi{% endblock %}
+
+{% block page_title %}Môn học của tôi{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-1">Môn học đang theo học</h4>
+                <p class="text-muted mb-0">Danh sách các môn học bạn đã đăng ký</p>
+            </div>
+            <a href="{% url 'core:dashboards:student:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Về Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if enrollments %}
+<div class="row">
+    {% for enrollment in enrollments %}
+    <div class="col-lg-6 col-xl-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ enrollment.course.code }}</h6>
+                    <span class="badge bg-light text-primary">{{ enrollment.course.credits }} tín chỉ</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ enrollment.course.name }}</h5>
+                <p class="card-text text-muted">{{ enrollment.course.description|truncatewords:15 }}</p>
+                
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-person me-1"></i>
+                        <strong>Giảng viên:</strong> {{ enrollment.course.teacher.get_full_name }}
+                    </small>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        <strong>Đăng ký:</strong> {{ enrollment.enrolled_at|date:"d/m/Y" }}
+                    </small>
+                </div>
+                
+                {% if enrollment.course.schedule %}
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>
+                        <strong>Lịch học:</strong> {{ enrollment.course.schedule }}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'core:dashboards:student:course_detail' enrollment.course.id %}" 
+                       class="btn btn-primary btn-sm">
+                        <i class="bi bi-eye me-2"></i>Xem chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="Phân trang">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; Đầu</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Tiếp</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-book fs-1 text-muted mb-3"></i>
+                <h4 class="text-muted">Chưa có môn học nào</h4>
+                <p class="text-muted">Bạn chưa đăng ký môn học nào. Liên hệ với phòng đào tạo để đăng ký môn học.</p>
+                <a href="{% url 'core:dashboards:student:dashboard' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Về Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

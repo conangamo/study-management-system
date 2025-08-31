@@ -1,0 +1,299 @@
+{% extends 'admin/base.html' %}
+{% block title %}{% if is_create %}Thêm lớp học{% else %}Chỉnh sửa lớp học{% endif %} - Admin{% endblock %}
+{% block page_title %}{% if is_create %}Thêm lớp học{% else %}Chỉnh sửa lớp học{% endif %}{% endblock %}
+
+{% block extra_css %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-chalkboard me-2"></i>
+            {% if is_create %}Thêm lớp học mới{% else %}Chỉnh sửa lớp học{% endif %}
+        </h5>
+    </div>
+    
+    <div class="admin-card-body">
+        <form method="post" id="class-form">
+            {% csrf_token %}
+            
+            <div class="row">
+                <!-- Thông tin cơ bản -->
+                <div class="col-md-6">
+                    <h6 class="mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Thông tin cơ bản
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            {{ form.name.label }}
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.help_text %}
+                        <div class="form-text">{{ form.name.help_text }}</div>
+                        {% endif %}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.name.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.display_name.id_for_label }}" class="form-label">
+                            {{ form.display_name.label }}
+                        </label>
+                        {{ form.display_name }}
+                        {% if form.display_name.help_text %}
+                        <div class="form-text">{{ form.display_name.help_text }}</div>
+                        {% endif %}
+                        {% if form.display_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.display_name.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.academic_year.id_for_label }}" class="form-label">
+                            {{ form.academic_year.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.academic_year }}
+                        {% if form.academic_year.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.academic_year.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.department.id_for_label }}" class="form-label">
+                            {{ form.department.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.department }}
+                        {% if form.department.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.department.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.class_number.id_for_label }}" class="form-label">
+                            {{ form.class_number.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.class_number }}
+                        {% if form.class_number.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.class_number.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.max_students.id_for_label }}" class="form-label">
+                            {{ form.max_students.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.max_students }}
+                        {% if form.max_students.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.max_students.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                            {{ form.status.label }}
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.status.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Thông tin quản lý -->
+                <div class="col-md-6">
+                    <h6 class="mb-3">
+                        <i class="fas fa-users-cog me-2"></i>Thông tin quản lý
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.advisor.id_for_label }}" class="form-label">
+                            {{ form.advisor.label }}
+                        </label>
+                        {{ form.advisor }}
+                        {% if form.advisor.help_text %}
+                        <div class="form-text">{{ form.advisor.help_text }}</div>
+                        {% endif %}
+                        {% if form.advisor.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.advisor.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.head_teacher.id_for_label }}" class="form-label">
+                            {{ form.head_teacher.label }}
+                        </label>
+                        {{ form.head_teacher }}
+                        {% if form.head_teacher.help_text %}
+                        <div class="form-text">{{ form.head_teacher.help_text }}</div>
+                        {% endif %}
+                        {% if form.head_teacher.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.head_teacher.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.description.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preview tên lớp -->
+            <div class="alert alert-info">
+                <i class="fas fa-eye me-2"></i>
+                <strong>Preview:</strong> 
+                <span id="class-name-preview">Tên lớp sẽ được tạo tự động</span>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'core:admin_class_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Quay lại
+                </a>
+                <button type="submit" class="btn btn-admin">
+                    <i class="fas fa-save me-1"></i>
+                    {% if is_create %}Tạo lớp học{% else %}Cập nhật{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for teacher dropdowns
+    $('.select2-search').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        allowClear: true,
+        placeholder: function() {
+            return $(this).data('placeholder');
+        },
+        minimumInputLength: 1,
+        ajax: {
+            url: '/custom-admin/users/search/',
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return {
+                    q: params.term,
+                    role: 'teacher',
+                    page: params.page || 1
+                };
+            },
+            processResults: function(data, params) {
+                params.page = params.page || 1;
+                
+                return {
+                    results: data.results.map(function(item) {
+                        return {
+                            id: item.id,
+                            text: item.text
+                        };
+                    }),
+                    pagination: {
+                        more: data.pagination && data.pagination.more
+                    }
+                };
+            },
+            cache: true
+        },
+        templateResult: function(data) {
+            if (data.loading) return data.text;
+            return data.text;
+        },
+        templateSelection: function(data) {
+            return data.text || data.id;
+        }
+    });
+    
+    // Preview class name
+    function updateClassNamePreview() {
+        var customName = $('#id_name').val();
+        var customDisplayName = $('#id_display_name').val();
+        var year = $('#id_academic_year').val();
+        var dept = $('#id_department').val();
+        var number = $('#id_class_number').val();
+        
+        if (customName && customDisplayName) {
+            // Nếu user đã nhập tên tùy chỉnh
+            $('#class-name-preview').html(
+                '<strong>' + customName + '</strong> - ' + customDisplayName
+            );
+        } else if (year && dept && number) {
+            // Tự động tạo tên nếu user chưa nhập
+            var yearSuffix = year.toString().slice(-2);
+            var className = yearSuffix + dept + number;
+            var displayName = 'Lớp ' + $('#id_department option:selected').text() + ' K' + year + ' - Lớp ' + number;
+            
+            $('#class-name-preview').html(
+                '<strong>' + className + '</strong> - ' + displayName + ' <small class="text-muted">(tự động tạo)</small>'
+            );
+        } else {
+            $('#class-name-preview').text('Tên lớp sẽ được tạo tự động');
+        }
+    }
+    
+    // Update preview when fields change
+    $('#id_name, #id_display_name, #id_academic_year, #id_department, #id_class_number').on('change keyup', updateClassNamePreview);
+    
+    // Initial preview
+    updateClassNamePreview();
+    
+    // Form validation
+    $('#class-form').on('submit', function(e) {
+        var isValid = true;
+        
+        // Check required fields
+        $('.form-select, .form-control').each(function() {
+            if ($(this).prop('required') && !$(this).val()) {
+                $(this).addClass('is-invalid');
+                isValid = false;
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Vui lòng điền đầy đủ thông tin bắt buộc.');
+        }
+    });
+});
+</script>
+{% endblock %} 

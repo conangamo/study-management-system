@@ -1,0 +1,266 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Quản lý người dùng - Admin Panel{% endblock %}
+{% block page_title %}Quản lý người dùng{% endblock %}
+
+{% block content %}
+<!-- Search and Filter Card -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-search me-2"></i>Tìm kiếm và lọc
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        <form method="get" class="admin-form">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="search_query" class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" id="search_query" name="search_query" 
+                           value="{{ form.search_query.value|default:'' }}" placeholder="Tên, email, username...">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="role_filter" class="form-label">Vai trò</label>
+                    <select class="form-control" id="role_filter" name="role_filter">
+                        <option value="">Tất cả</option>
+                        <option value="student" {% if form.role_filter.value == 'student' %}selected{% endif %}>Sinh viên</option>
+                        <option value="teacher" {% if form.role_filter.value == 'teacher' %}selected{% endif %}>Giảng viên</option>
+                        <option value="admin" {% if form.role_filter.value == 'admin' %}selected{% endif %}>Quản trị viên</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="department_filter" class="form-label">Khoa</label>
+                    <select class="form-control" id="department_filter" name="department_filter">
+                        <option value="">Tất cả</option>
+                        <option value="cntt" {% if form.department_filter.value == 'cntt' %}selected{% endif %}>Công nghệ thông tin</option>
+                        <option value="kt" {% if form.department_filter.value == 'kt' %}selected{% endif %}>Kinh tế</option>
+                        <option value="nn" {% if form.department_filter.value == 'nn' %}selected{% endif %}>Ngoại ngữ</option>
+                        <option value="sk" {% if form.department_filter.value == 'sk' %}selected{% endif %}>Sức khỏe</option>
+                        <option value="khac" {% if form.department_filter.value == 'khac' %}selected{% endif %}>Khác</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="status_filter" class="form-label">Trạng thái</label>
+                    <select class="form-control" id="status_filter" name="status_filter">
+                        <option value="">Tất cả</option>
+                        <option value="active" {% if form.status_filter.value == 'active' %}selected{% endif %}>Hoạt động</option>
+                        <option value="inactive" {% if form.status_filter.value == 'inactive' %}selected{% endif %}>Khóa</option>
+                        <option value="verified" {% if form.status_filter.value == 'verified' %}selected{% endif %}>Đã xác thực</option>
+                        <option value="unverified" {% if form.status_filter.value == 'unverified' %}selected{% endif %}>Chưa xác thực</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-admin btn-admin-primary">
+                            <i class="fas fa-search me-2"></i>Tìm kiếm
+                        </button>
+                        <a href="{% url 'core:admin_user_list' %}" class="btn btn-admin btn-admin-warning">
+                            <i class="fas fa-refresh me-2"></i>Làm mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table Card -->
+<div class="admin-card">
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h5 class="admin-card-title">
+            <i class="fas fa-users me-2"></i>Danh sách người dùng
+        </h5>
+        <div class="btn-group" role="group">
+            <a href="{% url 'core:create_student_account' %}" class="btn btn-admin btn-admin-success btn-sm">
+                <i class="fas fa-user-plus me-2"></i>Tạo SV
+            </a>
+            <a href="{% url 'core:create_teacher_account' %}" class="btn btn-admin btn-admin-warning btn-sm">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Tạo GV
+            </a>
+            <a href="{% url 'core:bulk_create_student_accounts' %}" class="btn btn-admin btn-admin-primary btn-sm">
+                <i class="fas fa-file-csv me-2"></i>Import SV
+            </a>
+            <a href="{% url 'core:bulk_create_teacher_accounts' %}" class="btn btn-admin btn-admin-info btn-sm">
+                <i class="fas fa-file-csv me-2"></i>Import GV
+            </a>
+        </div>
+    </div>
+    <div class="admin-card-body">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Người dùng</th>
+                            <th>Vai trò</th>
+                            <th>Khoa</th>
+                            <th>Email</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="admin-avatar me-3" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600;">{{ user.get_full_name }}</div>
+                                        <small class="text-muted">@{{ user.username }}</small>
+                                        {% if user.profile.student_id %}
+                                            <br><small class="text-info">MSV: {{ user.profile.student_id }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if user.profile.role == 'admin' %}danger{% elif user.profile.role == 'teacher' %}warning{% else %}success{% endif %}">
+                                    {{ user.profile.get_role_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if user.profile.department %}
+                                    {{ user.profile.get_department_display }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <div class="d-flex flex-column gap-1">
+                                    {% if user.is_active %}
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Khóa</span>
+                                    {% endif %}
+                                    
+                                    {% if user.profile.is_verified %}
+                                        <span class="badge bg-info">Đã xác thực</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Chưa xác thực</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="toggleUserStatus({{ user.id }})">
+                                                <i class="fas fa-{% if user.is_active %}lock{% else %}unlock{% endif %} me-2"></i>
+                                                {% if user.is_active %}Khóa{% else %}Mở khóa{% endif %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="resetPassword({{ user.id }})">
+                                                <i class="fas fa-key me-2"></i>Reset mật khẩu
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="deleteUser({{ user.id }}, '{{ user.username }}')">
+                                                <i class="fas fa-trash me-2"></i>Xóa
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="User pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.role_filter %}&role_filter={{ request.GET.role_filter }}{% endif %}{% if request.GET.department_filter %}&department_filter={{ request.GET.department_filter }}{% endif %}{% if request.GET.status_filter %}&status_filter={{ request.GET.status_filter }}{% endif %}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.role_filter %}&role_filter={{ request.GET.role_filter }}{% endif %}{% if request.GET.department_filter %}&department_filter={{ request.GET.department_filter }}{% endif %}{% if request.GET.status_filter %}&status_filter={{ request.GET.status_filter }}{% endif %}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.role_filter %}&role_filter={{ request.GET.role_filter }}{% endif %}{% if request.GET.department_filter %}&department_filter={{ request.GET.department_filter }}{% endif %}{% if request.GET.status_filter %}&status_filter={{ request.GET.status_filter }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.role_filter %}&role_filter={{ request.GET.role_filter }}{% endif %}{% if request.GET.department_filter %}&department_filter={{ request.GET.department_filter }}{% endif %}{% if request.GET.status_filter %}&status_filter={{ request.GET.status_filter }}{% endif %}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.role_filter %}&role_filter={{ request.GET.role_filter }}{% endif %}{% if request.GET.department_filter %}&department_filter={{ request.GET.department_filter }}{% endif %}{% if request.GET.status_filter %}&status_filter={{ request.GET.status_filter }}{% endif %}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            <!-- Results Info -->
+            <div class="text-center text-muted mt-3">
+                Hiển thị {{ page_obj.start_index }} - {{ page_obj.end_index }} trong tổng số {{ page_obj.paginator.count }} người dùng
+            </div>
+
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Không tìm thấy người dùng nào</h5>
+                <p class="text-muted">Thử thay đổi tiêu chí tìm kiếm hoặc tạo người dùng mới</p>
+                <a href="{% url 'core:create_student_account' %}" class="btn btn-admin btn-admin-primary">
+                    <i class="fas fa-user-plus me-2"></i>Tạo người dùng đầu tiên
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleUserStatus(userId) {
+        if (confirm('Bạn có chắc chắn muốn thay đổi trạng thái người dùng này?')) {
+            window.location.href = `/custom-admin/users/${userId}/toggle-status/`;
+        }
+    }
+
+    function resetPassword(userId) {
+        if (confirm('Bạn có chắc chắn muốn reset mật khẩu người dùng này?')) {
+            window.location.href = `/custom-admin/users/${userId}/reset-password/`;
+        }
+    }
+
+    function deleteUser(userId, username) {
+        if (confirm(`Bạn có chắc chắn muốn xóa người dùng "${username}"? Hành động này không thể hoàn tác!`)) {
+            window.location.href = `/custom-admin/users/${userId}/delete/`;
+        }
+    }
+</script>
+{% endblock %} 

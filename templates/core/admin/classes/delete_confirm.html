@@ -1,0 +1,137 @@
+{% extends 'admin/base.html' %}
+{% block title %}Xóa lớp học - Admin{% endblock %}
+{% block page_title %}Xóa lớp học{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-exclamation-triangle me-2 text-danger"></i>Xác nhận xóa lớp học
+        </h5>
+    </div>
+    
+    <div class="admin-card-body">
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Cảnh báo:</strong> Bạn sắp xóa lớp học này. Hành động này không thể hoàn tác!
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Thông tin lớp học
+                </h6>
+                
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Tên lớp:</strong></td>
+                        <td>{{ class_obj.name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tên hiển thị:</strong></td>
+                        <td>{{ class_obj.display_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Khoa/Ngành:</strong></td>
+                        <td>{{ class_obj.get_department_display }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Năm học:</strong></td>
+                        <td>K{{ class_obj.academic_year }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sĩ số:</strong></td>
+                        <td>{{ class_obj.current_students }}/{{ class_obj.max_students }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Trạng thái:</strong></td>
+                        <td>{{ class_obj.get_status_display }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="col-md-6">
+                <h6 class="mb-3">
+                    <i class="fas fa-users me-2"></i>Thông tin sinh viên
+                </h6>
+                
+                {% with students=class_obj.get_students %}
+                {% if students %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Lưu ý:</strong> Lớp này có {{ students.count }} sinh viên đang theo học.
+                    Khi xóa lớp, tất cả sinh viên sẽ bị gỡ khỏi lớp.
+                </div>
+                
+                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Mã SV</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.student_id|default:"N/A" }}</td>
+                                <td>{{ student.user.get_full_name }}</td>
+                                <td>{{ student.user.email }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Lớp này không có sinh viên nào đang theo học.
+                </div>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        
+        <!-- Form xác nhận -->
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="confirm_delete" required>
+                <label class="form-check-label" for="confirm_delete">
+                    Tôi hiểu rằng việc xóa lớp học này sẽ gỡ tất cả sinh viên khỏi lớp và không thể hoàn tác.
+                </label>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'core:admin_class_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Hủy bỏ
+                </a>
+                <button type="submit" class="btn btn-danger" id="delete_btn" disabled>
+                    <i class="fas fa-trash me-1"></i>Xóa lớp học
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Enable/disable delete button based on checkbox
+    $('#confirm_delete').change(function() {
+        $('#delete_btn').prop('disabled', !this.checked);
+    });
+    
+    // Confirm before submit
+    $('form').submit(function(e) {
+        if (!confirm('Bạn có chắc chắn muốn xóa lớp học này? Hành động này không thể hoàn tác!')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %} 

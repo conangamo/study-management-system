@@ -1,0 +1,244 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-3">Teacher Dashboard</h1>
+            <p class="text-muted">Chào mừng, {{ user.get_full_name }}!</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ total_courses }}</h4>
+                            <p class="mb-0">Tổng môn học</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-book fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ active_courses }}</h4>
+                            <p class="mb-0">Môn học đang dạy</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ total_assignments }}</h4>
+                            <p class="mb-0">Bài tập đã giao</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ pending_submissions }}</h4>
+                            <p class="mb-0">Bài cần chấm</p>
+                        </div>
+                        <div>
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Môn học gần đây</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_courses %}
+                        <div class="list-group list-group-flush">
+                            {% for course in recent_courses %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ course.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ course.code }} - {{ course.semester }}</small>
+                                </div>
+                                <span class="badge badge-{{ course.status|default:'secondary' }} badge-pill">
+                                    {{ course.get_status_display }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'core:dashboards:teacher:course_list' %}" class="btn btn-outline-primary">
+                                Xem tất cả môn học
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">Chưa có môn học nào.</p>
+                        <div class="text-center">
+                            <a href="{% url 'core:dashboards:teacher:course_create' %}" class="btn btn-primary">
+                                Tạo môn học đầu tiên
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Bài tập gần đây</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_assignments %}
+                        <div class="list-group list-group-flush">
+                            {% for assignment in recent_assignments %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ assignment.title }}</h6>
+                                    <small>{{ assignment.due_date|date:"d/m/Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ assignment.course.name }}</p>
+                                <small class="text-muted">{{ assignment.get_status_display }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'core:dashboards:teacher:assignment_list' %}" class="btn btn-outline-primary">
+                                Xem tất cả bài tập
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">Chưa có bài tập nào.</p>
+                        <div class="text-center">
+                            <a href="{% url 'core:dashboards:teacher:assignment_create' %}" class="btn btn-primary">
+                                Tạo bài tập mới
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Submissions -->
+    {% if pending_submissions_list %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Bài nộp cần chấm điểm</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Sinh viên</th>
+                                    <th>Bài tập</th>
+                                    <th>Môn học</th>
+                                    <th>Thời gian nộp</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for submission in pending_submissions_list %}
+                                <tr>
+                                    <td>{{ submission.student.get_full_name }}</td>
+                                    <td>{{ submission.assignment.title }}</td>
+                                    <td>{{ submission.assignment.course.name }}</td>
+                                    <td>{{ submission.submitted_at|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if submission.is_late %}warning{% else %}info{% endif %}">
+                                            {{ submission.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'core:dashboards:teacher:assignment_grading' submission.assignment.pk %}" 
+                                           class="btn btn-sm btn-primary">
+                                            Chấm điểm
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Hành động nhanh</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'core:dashboards:teacher:course_create' %}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-plus"></i> Tạo môn học mới
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'core:dashboards:teacher:assignment_create' %}" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-tasks"></i> Giao bài tập mới
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'core:dashboards:teacher:grade_create' %}" class="btn btn-outline-warning btn-block">
+                                <i class="fas fa-edit"></i> Nhập điểm
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'core:dashboards:teacher:student_list' %}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-users"></i> Xem sinh viên
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

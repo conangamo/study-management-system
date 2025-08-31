@@ -1,0 +1,368 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Thông tin cá nhân - Study Management{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Profile Card -->
+        <div class="col-md-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg-info text-white text-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Thông tin cá nhân
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <img src="{% static 'images/default-avatar.png' %}" alt="Avatar" 
+                             class="rounded-circle" width="120" height="120" id="userAvatar">
+                    </div>
+                    <h5 id="userFullName">{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted mb-2" id="userRole">
+                        {% if profile %}
+                            {{ profile.get_role_display }}
+                        {% else %}
+                            Chưa cập nhật
+                        {% endif %}
+                    </p>
+                    <p class="text-muted mb-3" id="userDepartment">
+                        {% if profile and profile.department %}
+                            {{ profile.get_department_display }}
+                        {% else %}
+                            Chưa cập nhật
+                        {% endif %}
+                    </p>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" id="editProfileBtn">
+                            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" id="changePasswordBtn">
+                            <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                        </button>
+                        <a href="{% url 'core:logout' %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </a>
+                    </div>
+                    
+                    <!-- Thông báo cho sinh viên chưa được xác thực -->
+                    {% if profile and profile.role == 'student' and not profile.is_verified %}
+                    <div id="verificationNotice" class="mt-3">
+                        <div class="alert alert-warning alert-sm">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <small>Tài khoản của bạn chưa được xác thực. Vui lòng liên hệ admin để được xác thực.</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Details -->
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>
+                        Chi tiết thông tin
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Alert Messages -->
+                    <div id="alert-container"></div>
+                    
+                    <!-- Profile Form -->
+                    <form id="profileForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Tên đăng nhập
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       value="{{ user.username }}" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>Email
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ user.email }}" disabled>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Họ
+                                </label>
+                                <input type="text" class="form-control" id="firstName" name="first_name" 
+                                       value="{{ user.first_name }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Tên
+                                </label>
+                                <input type="text" class="form-control" id="lastName" name="last_name" 
+                                       value="{{ user.last_name }}" disabled>
+                            </div>
+                        </div>
+
+                        {% if profile %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">
+                                    <i class="fas fa-phone me-2"></i>Số điện thoại
+                                </label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ profile.phone|default:'' }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateOfBirth" class="form-label">
+                                    <i class="fas fa-calendar me-2"></i>Ngày sinh
+                                </label>
+                                <input type="date" class="form-control" id="dateOfBirth" name="date_of_birth" 
+                                       value="{{ profile.date_of_birth|date:'Y-m-d'|default:'' }}" disabled>
+                            </div>
+                        </div>
+
+                        {% if profile.role == 'student' %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentId" class="form-label">
+                                    <i class="fas fa-id-card me-2"></i>Mã sinh viên
+                                </label>
+                                <input type="text" class="form-control" id="studentId" name="student_id" 
+                                       value="{{ profile.student_id|default:'' }}" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="yearOfStudy" class="form-label">
+                                    <i class="fas fa-graduation-cap me-2"></i>Năm học
+                                </label>
+                                <input type="number" class="form-control" id="yearOfStudy" name="year_of_study" 
+                                       value="{{ profile.year_of_study|default:'' }}" disabled>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ
+                            </label>
+                            <textarea class="form-control" id="address" name="address" rows="3" disabled>{{ profile.address|default:'' }}</textarea>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-primary d-none" id="saveBtn">
+                                <span id="saveBtnText">
+                                    <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                </span>
+                                <span id="saveBtnSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                            </button>
+                            <button type="button" class="btn btn-secondary d-none" id="cancelBtn">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                        <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="savePasswordBtn">
+                    <span id="savePasswordBtnText">
+                        <i class="fas fa-save me-2"></i>Đổi mật khẩu
+                    </span>
+                    <span id="savePasswordBtnSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileForm = document.getElementById('profileForm');
+    const alertContainer = document.getElementById('alert-container');
+    const saveBtn = document.getElementById('saveBtn');
+    const saveBtnText = document.getElementById('saveBtnText');
+    const saveBtnSpinner = document.getElementById('saveBtnSpinner');
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+
+    let isEditing = false;
+
+    // Show alert message
+    function showAlert(message, type = 'info') {
+        alertContainer.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+
+    // Toggle edit mode
+    editProfileBtn.addEventListener('click', function() {
+        if (!isEditing) {
+            enableEditing();
+        }
+    });
+
+    // Enable editing
+    function enableEditing() {
+        isEditing = true;
+        
+        // Enable editable fields
+        const editableFields = ['firstName', 'lastName', 'phone', 'dateOfBirth', 'yearOfStudy', 'address'];
+        editableFields.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.disabled = false;
+            }
+        });
+
+        // Show/hide buttons
+        editProfileBtn.classList.add('d-none');
+        saveBtn.classList.remove('d-none');
+        cancelBtn.classList.remove('d-none');
+    }
+
+    // Disable editing
+    function disableEditing() {
+        isEditing = false;
+        
+        // Disable all fields except readonly ones
+        const allFields = profileForm.querySelectorAll('input, textarea, select');
+        allFields.forEach(field => {
+            if (!field.readOnly) {
+                field.disabled = true;
+            }
+        });
+
+        // Show/hide buttons
+        editProfileBtn.classList.remove('d-none');
+        saveBtn.classList.add('d-none');
+        cancelBtn.classList.add('d-none');
+    }
+
+    // Cancel editing
+    cancelBtn.addEventListener('click', function() {
+        disableEditing();
+        // Reset form to original values - reload page
+        location.reload();
+    });
+
+    // Save profile changes
+    saveBtn.addEventListener('click', async function() {
+        if (!isEditing) return;
+
+        // Set loading state
+        saveBtn.disabled = true;
+        saveBtnText.textContent = 'Đang lưu...';
+        saveBtnSpinner.classList.remove('d-none');
+
+        const formData = new FormData(profileForm);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('{% url "core:profile" %}', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert(result.message || 'Cập nhật thông tin thành công!', 'success');
+                disableEditing();
+                
+                // Update display values
+                document.getElementById('userFullName').textContent = `${data.first_name} ${data.last_name}`;
+            } else {
+                showAlert(result.error || 'Có lỗi xảy ra khi cập nhật thông tin.', 'danger');
+            }
+        } catch (error) {
+            console.error('Update profile error:', error);
+            showAlert('Có lỗi xảy ra khi cập nhật thông tin.', 'danger');
+        } finally {
+            // Reset loading state
+            saveBtn.disabled = false;
+            saveBtnText.innerHTML = '<i class="fas fa-save me-2"></i>Lưu thay đổi';
+            saveBtnSpinner.classList.add('d-none');
+        }
+    });
+
+    // Handle change password
+    changePasswordBtn.addEventListener('click', function() {
+        const userRole = document.getElementById('userRole').textContent;
+        const verificationNotice = document.getElementById('verificationNotice');
+        const isVerified = !verificationNotice || verificationNotice.classList.contains('d-none');
+        
+        if (userRole === 'Sinh viên' && !isVerified) {
+            showAlert('Bạn không có quyền đổi mật khẩu. Tài khoản sinh viên cần được xác thực trước.', 'warning');
+            return;
+        }
+        
+        changePasswordModal.show();
+    });
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %} 

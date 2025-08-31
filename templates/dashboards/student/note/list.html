@@ -1,0 +1,121 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}Ghi chú của tôi{% endblock %}
+
+{% block page_title %}Ghi chú của tôi{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-1">Ghi chú cá nhân</h4>
+                <p class="text-muted mb-0">Quản lý ghi chú và ý tưởng học tập</p>
+            </div>
+            <div>
+                <a href="{% url 'core:dashboards:student:note_create' %}" class="btn btn-primary me-2">
+                    <i class="bi bi-plus-circle me-2"></i>Tạo ghi chú mới
+                </a>
+                <a href="{% url 'core:dashboards:student:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Về Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if notes %}
+<div class="row">
+    {% for note in notes %}
+    <div class="col-lg-6 col-xl-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">{{ note.title|truncatechars:30 }}</h6>
+                <small class="text-muted">{{ note.created_at|date:"d/m" }}</small>
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted">{{ note.content|truncatewords:20 }}</p>
+                
+                {% if note.tags.all %}
+                <div class="mb-3">
+                    {% for tag in note.tags.all %}
+                    <span class="badge bg-light text-dark me-1">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>{{ note.updated_at|timesince }} trước
+                    </small>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'core:dashboards:student:note_detail' note.id %}" 
+                           class="btn btn-outline-primary" title="Xem chi tiết">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'core:dashboards:student:note_edit' note.id %}" 
+                           class="btn btn-outline-warning" title="Chỉnh sửa">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="Phân trang">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">&laquo; Đầu</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Tiếp</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-sticky fs-1 text-muted mb-3"></i>
+                <h4 class="text-muted">Chưa có ghi chú nào</h4>
+                <p class="text-muted">Bắt đầu tạo ghi chú đầu tiên để lưu trữ ý tưởng và thông tin quan trọng.</p>
+                <a href="{% url 'core:dashboards:student:note_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Tạo ghi chú đầu tiên
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

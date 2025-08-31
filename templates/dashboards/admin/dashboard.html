@@ -1,0 +1,327 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block page_title %}Quản Trị Hệ Thống{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Overview Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Tổng Người Dùng
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fs-2 text-primary"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-success">
+                        <i class="bi bi-check-circle"></i> {{ active_users }} đang hoạt động
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Môn Học
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_courses }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-book fs-2 text-success"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-info">
+                        <i class="bi bi-activity"></i> {{ active_courses }} đang hoạt động
+                    </small>
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'core:admin_course_create' %}" class="btn btn-sm btn-success">
+                        <i class="bi bi-plus-circle"></i> Thêm Môn Học
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Bài Tập
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_assignments }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-file-text fs-2 text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Tổng Điểm
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_grades }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-award fs-2 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Statistics -->
+    <div class="col-xl-4 col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">Phân Bố Người Dùng</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <div class="h5 mb-1 text-primary">{{ students_count }}</div>
+                            <small class="text-muted">Sinh viên</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <div class="h5 mb-1 text-success">{{ teachers_count }}</div>
+                            <small class="text-muted">Giảng viên</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h5 mb-1 text-info">{{ admins_count }}</div>
+                        <small class="text-muted">Quản trị</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-xl-8 col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">Hoạt Động Gần Đây</h6>
+                <a href="{% url 'core:dashboards:admin:activity_log' %}" class="btn btn-sm btn-outline-light">
+                    Xem Tất Cả
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for login in recent_logins|slice:":5" %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ login.user.get_full_name|default:login.user.username }}</div>
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> {{ login.login_time|timesince }} trước
+                            </small>
+                        </div>
+                        <div>
+                            <span class="badge bg-success">Đăng nhập</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted">
+                        <i class="bi bi-info-circle"></i> Chưa có hoạt động nào
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-xl-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-info text-white">
+                <h6 class="m-0 font-weight-bold">Hành Động Nhanh</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'core:dashboards:admin:user_create' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-person-plus"></i><br>Tạo Người Dùng
+                        </a>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'core:admin_course_create' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-book-plus"></i><br>Thêm Môn Học
+                        </a>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'core:dashboards:admin:user_import' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-upload"></i><br>Import CSV
+                        </a>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'core:dashboards:admin:backup' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-download"></i><br>Backup DB
+                        </a>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'core:admin_course_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-list-ul"></i><br>Quản Lý Môn Học
+                        </a>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'core:dashboards:admin:system_management' %}" class="btn btn-outline-dark w-100">
+                            <i class="bi bi-gear"></i><br>Hệ Thống
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="col-xl-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">Người Dùng Mới</h6>
+                <a href="{% url 'core:dashboards:admin:user_list' %}" class="btn btn-sm btn-outline-light">
+                    Xem Tất Cả
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for user in recent_users %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
+                            <small class="text-muted">
+                                {% if user.profile %}
+                                    <span class="badge bg-secondary">{{ user.profile.get_role_display }}</span>
+                                {% endif %}
+                                {{ user.date_joined|timesince }} trước
+                            </small>
+                        </div>
+                        <div>
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Hoạt động</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Ngưng</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted">
+                        <i class="bi bi-info-circle"></i> Chưa có người dùng mới
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row">
+    <div class="col-xl-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-dark text-white">
+                <h6 class="m-0 font-weight-bold">Thống Kê Tăng Trưởng Người Dùng (30 ngày)</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="userGrowthChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="m-0 font-weight-bold">Trạng Thái Môn Học</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="courseStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// User Growth Chart
+const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+const userGrowthData = JSON.parse('{{ user_growth_data|escapejs }}');
+
+new Chart(userGrowthCtx, {
+    type: 'line',
+    data: {
+        labels: userGrowthData.map(item => item.date),
+        datasets: [{
+            label: 'Người dùng mới',
+            data: userGrowthData.map(item => item.count),
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Course Status Chart  
+const courseStatusCtx = document.getElementById('courseStatusChart').getContext('2d');
+const courseStatusData = JSON.parse('{{ course_status_data|escapejs }}');
+
+new Chart(courseStatusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: courseStatusData.map(item => item.status),
+        datasets: [{
+            data: courseStatusData.map(item => item.count),
+            backgroundColor: [
+                '#28a745',
+                '#ffc107', 
+                '#6c757d',
+                '#17a2b8'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+</script>
+{% endblock %} 

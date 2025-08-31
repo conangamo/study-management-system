@@ -1,0 +1,43 @@
+{% extends 'admin/base.html' %}
+{% block title %}Xóa môn học - Admin{% endblock %}
+{% block page_title %}Xóa môn học{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Xác nhận xóa môn học</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Bạn có chắc chắn muốn xóa môn học <strong>"{{ course.name }}"</strong> ({{ course.code }}) không?</p>
+                    
+                    <div class="alert alert-warning">
+                        <h6>Thông tin môn học:</h6>
+                        <ul class="mb-0">
+                            <li><strong>Tên môn:</strong> {{ course.name }}</li>
+                            <li><strong>Mã môn:</strong> {{ course.code }}</li>
+                            <li><strong>Giảng viên:</strong> {{ course.teacher.get_full_name }}</li>
+                            <li><strong>Số sinh viên đăng ký:</strong> {{ course.students.count }}</li>
+                            <li><strong>Trạng thái:</strong> {{ course.get_status_display }}</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <strong>Lưu ý:</strong> Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan đến môn học này sẽ bị xóa vĩnh viễn.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">Xóa môn học</button>
+                            <a href="{% url 'core:admin_course_list' %}" class="btn btn-secondary">Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

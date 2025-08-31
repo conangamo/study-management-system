@@ -1,0 +1,251 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Đăng nhập - Study Management{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Đăng nhập
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Alert Messages -->
+                    <div id="alert-container"></div>
+                    
+                    <!-- Login Form -->
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="Nhập email của bạn" required>
+                            <div class="invalid-feedback" id="email-error"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Mật khẩu
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Nhập mật khẩu" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="password-error"></div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
+                            <label class="form-check-label" for="rememberMe">
+                                Ghi nhớ đăng nhập
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                <span id="loginBtnText">Đăng nhập</span>
+                                <span id="loginBtnSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="mb-2 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Tài khoản được tạo bởi Admin
+                        </p>
+                        <a href="{% url 'core:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mb-0">Đang xử lý...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const alertContainer = document.getElementById('alert-container');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginBtnText = document.getElementById('loginBtnText');
+    const loginBtnSpinner = document.getElementById('loginBtnSpinner');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+
+    // Toggle password visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        togglePassword.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+
+    // Show alert message
+    function showAlert(message, type = 'info') {
+        alertContainer.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+
+    // Clear form errors
+    function clearErrors() {
+        document.querySelectorAll('.is-invalid').forEach(field => {
+            field.classList.remove('is-invalid');
+        });
+        document.querySelectorAll('.invalid-feedback').forEach(error => {
+            error.textContent = '';
+        });
+    }
+
+    // Set loading state
+    function setLoading(loading) {
+        loginBtn.disabled = loading;
+        if (loading) {
+            loginBtnText.textContent = 'Đang xử lý...';
+            loginBtnSpinner.classList.remove('d-none');
+            loadingModal.show();
+        } else {
+            loginBtnText.textContent = 'Đăng nhập';
+            loginBtnSpinner.classList.add('d-none');
+            // Đảm bảo modal được ẩn
+            try {
+                loadingModal.hide();
+            } catch (error) {
+                console.error('Error hiding modal:', error);
+                // Fallback: ẩn modal bằng cách khác
+                const modalElement = document.getElementById('loadingModal');
+                if (modalElement) {
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            }
+        }
+    }
+
+    // Handle form submission
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        clearErrors();
+        setLoading(true);
+
+        const formData = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            remember_me: document.getElementById('rememberMe').checked
+        };
+
+        try {
+            const response = await fetch('{% url "core:login" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('Đăng nhập thành công! Chuyển hướng...', 'success');
+                
+                // Store user info (no JWT tokens needed for session auth)
+                localStorage.setItem('user_info', JSON.stringify(data.user));
+                localStorage.setItem('session_info', JSON.stringify(data.session_info));
+                
+                // Redirect to dashboard
+                setTimeout(() => {
+                    window.location.href = '{% url "core:home" %}';
+                }, 1500);
+            } else {
+                if (data.error) {
+                    showAlert(data.error, 'danger');
+                } else if (data.email) {
+                    document.getElementById('email').classList.add('is-invalid');
+                    document.getElementById('email-error').textContent = data.email[0];
+                } else if (data.password) {
+                    document.getElementById('password').classList.add('is-invalid');
+                    document.getElementById('password-error').textContent = data.password[0];
+                } else {
+                    showAlert('Email hoặc mật khẩu không đúng.', 'danger');
+                }
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'danger');
+        } finally {
+            // Đảm bảo loading state được reset
+            setTimeout(() => {
+                setLoading(false);
+            }, 100);
+        }
+    });
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Đảm bảo modal được ẩn khi có lỗi
+    window.addEventListener('error', function() {
+        setLoading(false);
+    });
+
+    // Đảm bảo modal được ẩn khi page unload
+    window.addEventListener('beforeunload', function() {
+        setLoading(false);
+    });
+});
+</script>
+{% endblock %} 

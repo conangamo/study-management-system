@@ -1,0 +1,33 @@
+{% extends 'dashboards/base.html' %}
+{% block title %}{% if form.instance.pk %}Sửa môn học{% else %}Thêm môn học{% endif %}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>{% if form.instance.pk %}Sửa môn học{% else %}Thêm môn học{% endif %}</h3>
+    <a href="{% url 'dashboards:admin:courses:list' %}" class="btn btn-light">Quay lại</a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-md-6">
+        <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+        {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-4">
+      <button type="submit" class="btn btn-primary">Lưu</button>
+      <a href="{% url 'dashboards:admin:courses:list' %}" class="btn btn-secondary">Hủy</a>
+    </div>
+  </form>
+</div>
+{% endblock %} 

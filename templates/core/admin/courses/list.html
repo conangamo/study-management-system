@@ -1,0 +1,138 @@
+{% extends 'admin/base.html' %}
+{% block title %}Quản lý môn học - Admin{% endblock %}
+{% block page_title %}Quản lý môn học{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Quản lý môn học</h3>
+        <a href="{% url 'core:admin_course_create' %}" class="btn btn-primary">+ Thêm môn học</a>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tìm theo tên hoặc mã môn">
+        </div>
+        <div class="col-md-3">
+            <select name="teacher" class="form-select">
+                <option value="">— Tất cả giảng viên —</option>
+                {% for t in teachers %}
+                <option value="{{ t.id }}" {% if filter_teacher == t.id|stringformat:"s" %}selected{% endif %}>
+                    {{ t.get_full_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="year" class="form-select">
+                <option value="">— Tất cả năm học —</option>
+                {% for y in years %}
+                <option value="{{ y }}" {% if filter_year == y|stringformat:"s" %}selected{% endif %}>
+                    {{ y }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-outline-primary w-100">Lọc</button>
+        </div>
+    </form>
+
+    <!-- Course List -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Mã môn</th>
+                    <th>Tên môn học</th>
+                    <th>Giảng viên phụ trách</th>
+                    <th>Năm học</th>
+                    <th>Số SV</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>{{ course.code }}</td>
+                    <td>{{ course.name }}</td>
+                    <td>
+                        {% if course.teacher %}
+                        <div class="mb-1">
+                            <strong>{{ course.teacher.get_full_name }}</strong>
+                            {% if course.teacher.profile.department %}
+                            <br><small class="text-muted">{{ course.teacher.profile.department }}</small>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if course.assistant_teachers.all %}
+                        <div>
+                            <small class="text-muted">
+                                <strong>Đồng phụ trách:</strong><br>
+                                {% for teacher in course.assistant_teachers.all %}
+                                • {{ teacher.get_full_name }}
+                                {% if teacher.profile.department %}
+                                ({{ teacher.profile.department }})
+                                {% endif %}
+                                {% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ course.academic_year.name|default:"Tự chọn" }}</td>
+                    <td>{{ course.enrolled_student_count }}/{{ course.max_students|default:"∞" }}</td>
+                    <td>
+                        <span class="badge {% if course.status == 'active' %}bg-success{% elif course.status == 'inactive' %}bg-secondary{% else %}bg-warning{% endif %}">
+                            {{ course.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'core:admin_course_edit' course.pk %}" class="btn btn-sm btn-outline-primary">Sửa</a>
+                        <a href="{% url 'core:admin_course_delete' course.pk %}" class="btn btn-sm btn-outline-danger">Xóa</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">Không có môn học nào.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if courses.has_other_pages %}
+    <nav aria-label="Course pagination">
+        <ul class="pagination justify-content-center">
+            {% if courses.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ courses.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if filter_teacher %}&teacher={{ filter_teacher }}{% endif %}{% if filter_year %}&year={{ filter_year }}{% endif %}">Trước</a>
+            </li>
+            {% endif %}
+
+            {% for num in courses.paginator.page_range %}
+            {% if courses.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > courses.number|add:'-3' and num < courses.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if filter_teacher %}&teacher={{ filter_teacher }}{% endif %}{% if filter_year %}&year={{ filter_year }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if courses.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ courses.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if filter_teacher %}&teacher={{ filter_teacher }}{% endif %}{% if filter_year %}&year={{ filter_year }}{% endif %}">Sau</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %} 

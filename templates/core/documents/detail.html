@@ -1,0 +1,165 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ document.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Document Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-file-alt me-2"></i>{{ document.title }}
+                        </h3>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'core:document_download' document.pk %}" class="btn btn-success">
+                                <i class="fas fa-download me-1"></i>Tải về
+                            </a>
+                            {% if can_edit %}
+                            <a href="{% url 'core:document_edit' document.pk %}" class="btn btn-warning">
+                                <i class="fas fa-edit me-1"></i>Sửa
+                            </a>
+                            {% endif %}
+                            {% if can_delete %}
+                            <a href="{% url 'core:document_delete' document.pk %}" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>Xóa
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if document.description %}
+                    <div class="mb-3">
+                        <h5>Mô tả:</h5>
+                        <p>{{ document.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Thông tin cơ bản:</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-book me-2"></i><strong>Môn học:</strong> {{ document.course.name }}</li>
+                                <li><i class="fas fa-user me-2"></i><strong>Người tải lên:</strong> {{ document.uploaded_by.get_full_name|default:document.uploaded_by.username }}</li>
+                                <li><i class="fas fa-calendar me-2"></i><strong>Ngày tải lên:</strong> {{ document.uploaded_at|date:"d/m/Y H:i" }}</li>
+                                {% if document.category %}
+                                <li><i class="fas fa-tags me-2"></i><strong>Danh mục:</strong> {{ document.category.name }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Thông tin file:</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-file me-2"></i><strong>Loại file:</strong> {{ document.file_type|upper }}</li>
+                                <li><i class="fas fa-weight-hanging me-2"></i><strong>Kích thước:</strong> {{ document.file_size_mb }} MB</li>
+                                <li><i class="fas fa-download me-2"></i><strong>Lượt tải:</strong> {{ document.download_count }}</li>
+                                <li><i class="fas fa-eye me-2"></i><strong>Quyền xem:</strong> 
+                                    {% if document.visibility == 'public' %}
+                                    <span class="badge bg-success">Công khai</span>
+                                    {% elif document.visibility == 'course_only' %}
+                                    <span class="badge bg-warning">Chỉ môn học</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Riêng tư</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-comments me-2"></i>Bình luận ({{ document.comments.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add Comment Form -->
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ comment_form.content.id_for_label }}" class="form-label">Thêm bình luận:</label>
+                            {{ comment_form.content }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Gửi bình luận
+                        </button>
+                    </form>
+
+                    <!-- Comments List -->
+                    {% if document.comments.all %}
+                    <div class="comments-list">
+                        {% for comment in document.comments.all %}
+                        <div class="comment border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                    <small class="text-muted ms-2">{{ comment.created_at|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                {% if comment.user == user or user.is_superuser %}
+                                <form method="post" action="{% url 'core:document_detail' document.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="delete_comment" value="{{ comment.pk }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa bình luận này?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            <p class="mt-2 mb-0">{{ comment.content }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Chưa có bình luận nào.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Related Documents -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-link me-2"></i>Tài liệu liên quan
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Các tài liệu khác trong môn học này.</p>
+                    <a href="{% url 'core:document_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i>Xem tất cả tài liệu
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Thao tác nhanh
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:document_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-1"></i>Danh sách tài liệu
+                        </a>
+                        <a href="{% url 'core:document_my_uploads' %}" class="btn btn-outline-info">
+                            <i class="fas fa-folder me-1"></i>Tài liệu của tôi
+                        </a>
+                        <a href="{% url 'core:document_my_downloads' %}" class="btn btn-outline-success">
+                            <i class="fas fa-download me-1"></i>Đã tải về
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

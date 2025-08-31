@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel - Hệ thống Quản lý Học tập{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    <!-- Admin CSS -->
+    <style>
+        :root {
+            --admin-primary: #2c3e50;
+            --admin-secondary: #34495e;
+            --admin-accent: #3498db;
+            --admin-success: #27ae60;
+            --admin-warning: #f39c12;
+            --admin-danger: #e74c3c;
+            --admin-light: #ecf0f1;
+            --admin-dark: #2c3e50;
+            --admin-sidebar-width: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--admin-dark);
+        }
+
+        /* Sidebar */
+        .admin-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--admin-sidebar-width);
+            background: linear-gradient(180deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+            color: white;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .admin-sidebar.collapsed {
+            width: 60px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h4 {
+            margin: 0;
+            font-weight: 600;
+            color: white;
+        }
+
+        .sidebar-header .logo-icon {
+            font-size: 2rem;
+            color: var(--admin-accent);
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: var(--admin-accent);
+        }
+
+        .nav-link.active {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: white;
+            border-left-color: var(--admin-accent);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            text-align: center;
+        }
+
+        .nav-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .admin-sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        /* Main Content */
+        .admin-main {
+            margin-left: var(--admin-sidebar-width);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .admin-main.expanded {
+            margin-left: 60px;
+        }
+
+        /* Top Navigation */
+        .admin-topnav {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .topnav-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--admin-dark);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: var(--admin-light);
+        }
+
+        .page-title {
+            margin-left: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--admin-dark);
+        }
+
+        .topnav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--admin-light);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .admin-user-info:hover {
+            background-color: #d5dbdb;
+        }
+
+        .admin-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--admin-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Content Area */
+        .admin-content {
+            padding: 2rem;
+        }
+
+        /* Cards */
+        .admin-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .admin-card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+        }
+
+        .admin-card-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--admin-dark);
+        }
+
+        .admin-card-body {
+            padding: 1.5rem;
+        }
+
+        /* Buttons */
+        .btn-admin {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-admin-primary {
+            background-color: var(--admin-accent);
+            border-color: var(--admin-accent);
+            color: white;
+        }
+
+        .btn-admin-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .btn-admin-success {
+            background-color: var(--admin-success);
+            border-color: var(--admin-success);
+            color: white;
+        }
+
+        .btn-admin-warning {
+            background-color: var(--admin-warning);
+            border-color: var(--admin-warning);
+            color: white;
+        }
+
+        .btn-admin-danger {
+            background-color: var(--admin-danger);
+            border-color: var(--admin-danger);
+            color: white;
+        }
+
+        /* Tables */
+        .admin-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .admin-table th {
+            background-color: var(--admin-primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+        }
+
+        .admin-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .admin-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--admin-accent);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--admin-success);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--admin-warning);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--admin-danger);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--admin-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            opacity: 0.1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Alerts */
+        .admin-alert {
+            border-radius: 8px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Forms */
+        .admin-form .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .admin-form .form-control:focus {
+            border-color: var(--admin-accent);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .admin-form .form-label {
+            font-weight: 600;
+            color: var(--admin-dark);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h4 class="nav-text">Admin Panel</h4>
+        </div>
+        
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <a href="{% url 'core:admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:admin_user_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_user_list' %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span class="nav-text">Quản lý người dùng</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:create_student_account' %}" class="nav-link {% if request.resolver_match.url_name == 'create_student_account' %}active{% endif %}">
+                    <i class="fas fa-user-plus"></i>
+                    <span class="nav-text">Tạo tài khoản SV</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:create_teacher_account' %}" class="nav-link {% if request.resolver_match.url_name == 'create_teacher_account' %}active{% endif %}">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span class="nav-text">Tạo tài khoản GV</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:bulk_create_student_accounts' %}" class="nav-link {% if request.resolver_match.url_name == 'bulk_create_student_accounts' %}active{% endif %}">
+                    <i class="fas fa-file-csv"></i>
+                    <span class="nav-text">Tạo hàng loạt SV</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:bulk_create_teacher_accounts' %}" class="nav-link {% if request.resolver_match.url_name == 'bulk_create_teacher_accounts' %}active{% endif %}">
+                    <i class="fas fa-file-csv"></i>
+                    <span class="nav-text">Tạo hàng loạt GV</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:admin_course_list' %}" class="nav-link {% if 'admin_course' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-book"></i>
+                    <span class="nav-text">Quản lý môn học</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:admin_course_create' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_course_create' %}active{% endif %}">
+                    <i class="fas fa-book-plus"></i>
+                    <span class="nav-text">Thêm môn học</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:admin_class_list' %}" class="nav-link {% if 'admin_class' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-chalkboard"></i>
+                    <span class="nav-text">Quản lý lớp học</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:admin_class_create' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_class_create' %}active{% endif %}">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span class="nav-text">Thêm lớp học</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:admin_bulk_create_classes' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_bulk_create_classes' %}active{% endif %}">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="nav-text">Tạo hàng loạt lớp</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/django-admin/" class="nav-link" target="_blank">
+                    <i class="fas fa-cog"></i>
+                    <span class="nav-text">Django Admin</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">Về trang chủ</span>
+                </a>
+            </div>
+            
+            <div class="nav-item">
+                <a href="{% url 'core:admin_logout' %}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="nav-text">Đăng xuất Admin</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="admin-main" id="adminMain">
+        <!-- Top Navigation -->
+        <div class="admin-topnav">
+            <div class="topnav-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+            </div>
+            
+            <div class="topnav-right">
+                <div class="admin-user-info">
+                    <div class="admin-avatar">
+                        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">{{ request.user.get_full_name }}</div>
+                        <small style="color: #6c757d;">{{ request.user.profile.get_role_display }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="admin-content">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} admin-alert alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Admin JS -->
+    <script>
+        // Sidebar toggle
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('adminSidebar');
+            const main = document.getElementById('adminMain');
+            
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('expanded');
+        });
+
+        // Mobile sidebar
+        if (window.innerWidth <= 768) {
+            document.getElementById('adminSidebar').classList.add('collapsed');
+            document.getElementById('adminMain').classList.add('expanded');
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

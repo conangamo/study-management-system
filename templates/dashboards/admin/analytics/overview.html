@@ -1,0 +1,25 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}Analytics Overview{% endblock %}
+
+{% block page_title %}Báo Cáo Thống Kê{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="text-muted">
+                    <i class="bi bi-graph-up fs-1 mb-3"></i>
+                    <h4>Analytics Dashboard</h4>
+                    <p>Trang báo cáo thống kê chi tiết đang được phát triển.</p>
+                    <a href="{% url 'core:dashboards:admin:dashboard' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> Quay về Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

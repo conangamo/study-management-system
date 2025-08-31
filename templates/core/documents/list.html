@@ -1,0 +1,146 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Danh sách tài liệu{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-file-alt me-2"></i>Danh sách tài liệu</h1>
+                {% if can_upload %}
+                <a href="{% url 'core:document_upload' %}" class="btn btn-primary">
+                    <i class="fas fa-upload me-1"></i>Tải lên tài liệu
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Search Form -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" name="q" class="form-control" placeholder="Tìm kiếm tài liệu..." value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Tìm kiếm
+                            </button>
+                            <a href="{% url 'core:document_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Xóa
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Documents List -->
+            {% if documents %}
+            <div class="row">
+                {% for document in documents %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ document.title }}</h5>
+                            <p class="card-text text-muted">{{ document.description|truncatewords:20 }}</p>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-book me-1"></i>{{ document.course.name }}
+                                </small>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>{{ document.uploaded_by.get_full_name|default:document.uploaded_by.username }}
+                                </small>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ document.uploaded_at|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-primary">{{ document.file_type|upper }}</span>
+                                <span class="badge bg-info">{{ document.file_size_mb }} MB</span>
+                                <span class="badge bg-success">{{ document.download_count }} lượt tải</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{% url 'core:document_detail' document.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Xem
+                                </a>
+                                <a href="{% url 'core:document_download' document.pk %}" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-download me-1"></i>Tải
+                                </a>
+                                {% if document.can_be_edited_by %}
+                                <a href="{% url 'core:document_edit' document.pk %}" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-edit me-1"></i>Sửa
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if documents.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if documents.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ documents.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Trước</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in documents.paginator.page_range %}
+                    {% if documents.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > documents.number|add:'-3' and num < documents.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if documents.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ documents.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Sau</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            <!-- Upload Button at Bottom -->
+            {% if can_upload %}
+            <div class="text-center mt-4">
+                <a href="{% url 'core:document_upload' %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-upload me-2"></i>Tải lên tài liệu mới
+                </a>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Không có tài liệu nào</h4>
+                <p class="text-muted">Chưa có tài liệu nào được tải lên hoặc bạn không có quyền xem.</p>
+                {% if can_upload %}
+                <a href="{% url 'core:document_upload' %}" class="btn btn-primary">
+                    <i class="fas fa-upload me-1"></i>Tải lên tài liệu đầu tiên
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

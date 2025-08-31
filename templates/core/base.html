@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Study Management{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+        }
+        
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+        }
+        
+        .btn {
+            border-radius: 8px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+        }
+        
+        .alert {
+            border-radius: 10px;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+        }
+        
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        /* Custom animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'core:home' %}">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Study Management
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:home' %}">
+                            <i class="fas fa-home me-1"></i>Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:document_list' %}">
+                            <i class="fas fa-file-alt me-1"></i>Tài liệu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-book me-1"></i>Khóa học
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-tasks me-1"></i>Bài tập
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-bar me-1"></i>Điểm số
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown" id="userDropdown" style="display: none;">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>
+                            <span id="userName">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'core:profile_page' %}">
+                                    <i class="fas fa-user-circle me-2"></i>Thông tin cá nhân
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" id="changePasswordLink">
+                                    <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" id="logoutLink">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item" id="authButtons">
+                        <a class="nav-link" href="{% url 'core:login_page' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
+                        </a>
+                    </li>
+                    
+                    <!-- Server-side user info (hidden by default) -->
+                    {% if user.is_authenticated %}
+                    <div id="serverUserInfo" style="display: none;" 
+                         data-username="{{ user.username }}"
+                         data-first-name="{{ user.first_name }}"
+                         data-last-name="{{ user.last_name }}"
+                         data-email="{{ user.email }}"
+                         data-role="{% if user.profile %}{{ user.profile.role }}{% else %}student{% endif %}">
+                    </div>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="fade-in">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">
+                <i class="fas fa-code me-2"></i>
+                Study Management System - Built with Django & Bootstrap 5
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Auth Management Script -->
+    <script>
+        // Check authentication status
+        function checkAuthStatus() {
+            const userInfo = localStorage.getItem('user_info');
+            const sessionInfo = localStorage.getItem('session_info');
+            const serverUserInfo = document.getElementById('serverUserInfo');
+            
+            const userDropdown = document.getElementById('userDropdown');
+            const authButtons = document.getElementById('authButtons');
+            
+            // Check if user is authenticated via server-side
+            if (serverUserInfo) {
+                const user = {
+                    username: serverUserInfo.dataset.username,
+                    first_name: serverUserInfo.dataset.firstName,
+                    last_name: serverUserInfo.dataset.lastName,
+                    email: serverUserInfo.dataset.email,
+                    profile: {
+                        role: serverUserInfo.dataset.role
+                    }
+                };
+                
+                document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+                userDropdown.style.display = 'block';
+                authButtons.style.display = 'none';
+                return;
+            }
+            
+            // Fallback to client-side authentication
+            if (userInfo && sessionInfo) {
+                try {
+                    const user = JSON.parse(userInfo);
+                    document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+                    userDropdown.style.display = 'block';
+                    authButtons.style.display = 'none';
+                } catch (e) {
+                    console.error('Error parsing user info:', e);
+                    clearAuth();
+                }
+            } else {
+                userDropdown.style.display = 'none';
+                authButtons.style.display = 'block';
+            }
+        }
+
+        // Clear authentication
+        function clearAuth() {
+            localStorage.removeItem('user_info');
+            localStorage.removeItem('session_info');
+            checkAuthStatus();
+        }
+
+        // Handle logout
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            
+            const logoutLink = document.getElementById('logoutLink');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    try {
+                        await fetch('{% url "core:logout" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                    } finally {
+                        clearAuth();
+                        window.location.href = '{% url "core:login_page" %}';
+                    }
+                });
+            }
+        });
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

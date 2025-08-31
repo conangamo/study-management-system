@@ -1,0 +1,319 @@
+{% extends 'dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Tạo bài tập mới - Dashboard Giáo viên{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid #e9ecef;
+    }
+    .form-section h5 {
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    .file-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        background: #fff;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .file-upload-area:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+    .file-upload-area.dragover {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+    .file-upload-area i {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    .file-info {
+        background: #e9ecef;
+        border-radius: 5px;
+        padding: 10px;
+        margin-top: 15px;
+        display: none;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #218838 0%, #1a9876 100%);
+        color: white;
+    }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-plus-circle me-2"></i>Tạo bài tập mới
+            </h1>
+            <p class="text-muted">Tạo bài tập cho sinh viên trong các môn học bạn phụ trách</p>
+        </div>
+        <a href="{% url 'dashboards:teacher:assignment_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại
+        </a>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Có lỗi xảy ra:</strong>
+        <ul class="mb-0 mt-2">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" id="assignmentForm">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h5><i class="fas fa-info-circle me-2"></i>Thông tin cơ bản</h5>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.course.id_for_label }}" class="form-label required-field">Môn học</label>
+                    {{ form.course }}
+                    {% if form.course.help_text %}
+                        <small class="form-text text-muted">{{ form.course.help_text }}</small>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.status.id_for_label }}" class="form-label">Trạng thái</label>
+                    {{ form.status }}
+                    <small class="form-text text-muted">Chọn "Bản nháp" nếu chưa muốn sinh viên thấy bài tập</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.title.id_for_label }}" class="form-label required-field">Tiêu đề bài tập</label>
+                {{ form.title }}
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.description.id_for_label }}" class="form-label required-field">Mô tả bài tập</label>
+                {{ form.description }}
+                <small class="form-text text-muted">Mô tả chi tiết về yêu cầu và nội dung bài tập</small>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.instructions.id_for_label }}" class="form-label">Hướng dẫn làm bài</label>
+                {{ form.instructions }}
+                <small class="form-text text-muted">Các hướng dẫn bổ sung giúp sinh viên hiểu cách làm bài (tùy chọn)</small>
+            </div>
+        </div>
+
+        <!-- Assignment Settings -->
+        <div class="form-section">
+            <h5><i class="fas fa-cogs me-2"></i>Cài đặt bài tập</h5>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.due_date.id_for_label }}" class="form-label required-field">Hạn nộp</label>
+                    {{ form.due_date }}
+                    <small class="form-text text-muted">Thời gian cuối cùng sinh viên có thể nộp bài</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.max_score.id_for_label }}" class="form-label">Điểm tối đa</label>
+                    {{ form.max_score }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.max_file_size.id_for_label }}" class="form-label">Kích thước file tối đa (MB)</label>
+                    {{ form.max_file_size }}
+                    <small class="form-text text-muted">Giới hạn kích thước file sinh viên có thể tải lên</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="form-check">
+                        {{ form.allow_late_submission }}
+                        <label class="form-check-label" for="{{ form.allow_late_submission.id_for_label }}">
+                            Cho phép nộp muộn
+                        </label>
+                    </div>
+                    <small class="form-text text-muted">Sinh viên có thể nộp bài sau deadline</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.is_visible_to_students }}
+                    <label class="form-check-label" for="{{ form.is_visible_to_students.id_for_label }}">
+                        Hiển thị cho sinh viên
+                    </label>
+                </div>
+                <small class="form-text text-muted">Bài tập sẽ xuất hiện trong danh sách bài tập của sinh viên</small>
+            </div>
+            
+            <!-- Hidden field for allowed_file_types -->
+            <div style="display: none;">
+                {{ form.allowed_file_types }}
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <div class="form-section">
+            <h5><i class="fas fa-upload me-2"></i>File đính kèm</h5>
+            <p class="text-muted mb-3">Tải lên file hướng dẫn, đề bài hoặc tài liệu liên quan (tùy chọn)</p>
+            
+            <div class="file-upload-area" id="fileUploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h6>Kéo thả file vào đây hoặc click để chọn</h6>
+                <p class="text-muted mb-2">Hỗ trợ: PDF, DOC, DOCX, PNG, JPG, JPEG</p>
+                <p class="text-muted small">Kích thước tối đa: 10MB</p>
+                {{ form.attachment }}
+            </div>
+            
+            <div class="file-info" id="fileInfo">
+                <i class="fas fa-file me-2"></i>
+                <span id="fileName"></span>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="removeFile">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="text-center">
+            <button type="submit" name="status" value="draft" class="btn btn-outline-secondary me-3">
+                <i class="fas fa-save me-2"></i>Lưu bản nháp
+            </button>
+            <button type="submit" name="status" value="active" class="btn btn-submit">
+                <i class="fas fa-check me-2"></i>Tạo và kích hoạt
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('{{ form.attachment.id_for_label }}');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const removeFileBtn = document.getElementById('removeFile');
+    
+    // Style the file input
+    if (fileInput) {
+        fileInput.style.display = 'none';
+        
+        // Click to select file
+        fileUploadArea.addEventListener('click', function(e) {
+            if (e.target !== removeFileBtn) {
+                fileInput.click();
+            }
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                showFileInfo(file);
+            }
+        });
+        
+        // Drag and drop
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+        });
+        
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                showFileInfo(files[0]);
+            }
+        });
+        
+        // Remove file
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            fileInput.value = '';
+            fileInfo.style.display = 'none';
+        });
+    }
+    
+    function showFileInfo(file) {
+        fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+        fileInfo.style.display = 'block';
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Form validation
+    const form = document.getElementById('assignmentForm');
+    form.addEventListener('submit', function(e) {
+        const course = document.getElementById('{{ form.course.id_for_label }}').value;
+        const title = document.getElementById('{{ form.title.id_for_label }}').value.trim();
+        const description = document.getElementById('{{ form.description.id_for_label }}').value.trim();
+        const dueDate = document.getElementById('{{ form.due_date.id_for_label }}').value;
+        
+        if (!course || !title || !description || !dueDate) {
+            e.preventDefault();
+            alert('Vui lòng điền đầy đủ thông tin bắt buộc (có dấu *)');
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtns = form.querySelectorAll('button[type="submit"]');
+        submitBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+        });
+    });
+});
+</script>
+{% endblock %} 

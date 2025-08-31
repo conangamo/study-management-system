@@ -1,0 +1,76 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Xác nhận xóa tài khoản - Admin Panel{% endblock %}
+{% block page_title %}Xác nhận xóa tài khoản{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Xác nhận xóa tài khoản
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        <div class="alert alert-warning admin-alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác. Tất cả dữ liệu của người dùng sẽ bị xóa vĩnh viễn.
+        </div>
+        
+        <div class="user-info mb-4">
+            <h6>Thông tin tài khoản sẽ bị xóa:</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="admin-avatar me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 1.1rem;">{{ user.get_full_name }}</div>
+                            <small class="text-muted">@{{ user.username }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-2">
+                        <strong>Email:</strong> {{ user.email }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Vai trò:</strong> 
+                        <span class="badge bg-{% if user.profile.role == 'admin' %}danger{% elif user.profile.role == 'teacher' %}warning{% else %}success{% endif %}">
+                            {{ user.profile.get_role_display }}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Trạng thái:</strong>
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Hoạt động</span>
+                        {% else %}
+                            <span class="badge bg-danger">Khóa</span>
+                        {% endif %}
+                    </div>
+                    {% if user.profile.student_id %}
+                    <div class="mb-2">
+                        <strong>Mã sinh viên:</strong> {{ user.profile.student_id }}
+                    </div>
+                    {% endif %}
+                    <div class="mb-2">
+                        <strong>Ngày tạo:</strong> {{ user.date_joined|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-3">
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>Xác nhận xóa
+                </button>
+            </form>
+            <a href="{% url 'core:admin_user_list' %}" class="btn btn-secondary">
+                <i class="fas fa-times me-2"></i>Hủy bỏ
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

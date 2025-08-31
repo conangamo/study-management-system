@@ -1,0 +1,154 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}Điểm số của tôi{% endblock %}
+
+{% block page_title %}Điểm số của tôi{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-1">Bảng điểm</h4>
+                <p class="text-muted mb-0">Theo dõi điểm số và kết quả học tập</p>
+            </div>
+            <a href="{% url 'core:dashboards:student:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Về Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Grade Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-clipboard-data fs-1 text-primary mb-2"></i>
+                <h4>{{ stats.total_grades }}</h4>
+                <small class="text-muted">Tổng số điểm</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up fs-1 text-success mb-2"></i>
+                <h4>{{ stats.average_score|floatformat:2 }}</h4>
+                <small class="text-muted">Điểm trung bình</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-arrow-up fs-1 text-warning mb-2"></i>
+                <h4>{{ stats.highest_score|floatformat:1 }}</h4>
+                <small class="text-muted">Điểm cao nhất</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-arrow-down fs-1 text-danger mb-2"></i>
+                <h4>{{ stats.lowest_score|floatformat:1 }}</h4>
+                <small class="text-muted">Điểm thấp nhất</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grades Table -->
+{% if grades %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-list-ul me-2"></i>Chi tiết điểm số
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Môn học</th>
+                                <th>Bài tập/Thi</th>
+                                <th>Điểm</th>
+                                <th>Loại điểm</th>
+                                <th>Ngày</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grade in grades %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <h6 class="mb-1">{{ grade.course.name }}</h6>
+                                        <small class="text-muted">{{ grade.course.code }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if grade.assignment %}
+                                        <a href="{% url 'core:dashboards:student:assignment_detail' grade.assignment.id %}" 
+                                           class="text-decoration-none">
+                                            {{ grade.assignment.title }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Điểm tổng kết</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if grade.score >= 8 %}bg-success{% elif grade.score >= 6.5 %}bg-warning{% else %}bg-danger{% endif %} fs-6">
+                                        {{ grade.score }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if grade.assignment %}
+                                        <span class="badge bg-info">Bài tập</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">Thi cuối kỳ</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ grade.created_at|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    {% if grade.comments %}
+                                        <small class="text-muted">{{ grade.comments|truncatewords:5 }}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-graph-up fs-1 text-muted mb-3"></i>
+                <h4 class="text-muted">Chưa có điểm số</h4>
+                <p class="text-muted">Hiện tại chưa có điểm số nào. Hãy kiểm tra lại sau khi có bài tập hoặc bài thi.</p>
+                <a href="{% url 'core:dashboards:student:dashboard' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Về Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

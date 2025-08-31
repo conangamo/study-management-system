@@ -1,0 +1,131 @@
+/* Documents App Styles */
+
+/* Document Cards */
+.document-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #dee2e6;
+}
+
+.document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Category Badges */
+.category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    color: white;
+}
+
+/* Visibility Badges */
+.visibility-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+}
+
+.visibility-public { 
+    background-color: #d4edda; 
+    color: #155724; 
+}
+
+.visibility-private { 
+    background-color: #f8d7da; 
+    color: #721c24; 
+}
+
+.visibility-course { 
+    background-color: #fff3cd; 
+    color: #856404; 
+}
+
+/* Document Stats */
+.document-stats {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Search Form */
+.search-form {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1.5rem;
+}
+
+/* File Upload Area */
+.file-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.375rem;
+    padding: 2rem;
+    text-align: center;
+    transition: border-color 0.2s;
+    cursor: pointer;
+}
+
+.file-upload-area:hover {
+    border-color: #007bff;
+}
+
+.file-upload-area.dragover {
+    border-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Color Preview */
+.color-preview {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    border: 2px solid #dee2e6;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Stats Cards */
+.stats-card {
+    transition: transform 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Download Items */
+.download-item {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.download-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 2rem;
+}
+
+/* Button Groups */
+.btn-toolbar .btn {
+    margin-left: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .document-card {
+        margin-bottom: 1rem;
+    }
+    
+    .search-form .row {
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-toolbar {
+        margin-top: 1rem;
+    }
+} 

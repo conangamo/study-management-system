@@ -1,0 +1,471 @@
+{% extends 'dashboards/base.html' %}
+{% load static %}
+
+{% block title %}{{ assignment.title }} - Chi tiết bài tập{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    .info-card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .submission-form {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 25px;
+        border: 2px dashed #dee2e6;
+    }
+    .submission-form.can-submit {
+        border-color: #28a745;
+        background: #f8fff8;
+    }
+    .submission-form.overdue {
+        border-color: #dc3545;
+        background: #fff8f8;
+    }
+    .file-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        background: #fff;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .file-upload-area:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+    .file-upload-area.dragover {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+    .file-info {
+        background: #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        display: none;
+    }
+    .status-badge {
+        font-size: 1rem;
+        padding: 8px 16px;
+        border-radius: 20px;
+    }
+    .deadline-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .deadline-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .submitted-info {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 12px 30px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #218838 0%, #1a9876 100%);
+        color: white;
+        transform: translateY(-1px);
+    }
+    .btn-download {
+        background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+        border: none;
+        color: white;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-download:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #520dc2 100%);
+        color: white;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Assignment Header -->
+    <div class="assignment-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-2">{{ assignment.title }}</h1>
+                <p class="mb-1 opacity-75">
+                    <i class="fas fa-book me-2"></i>{{ assignment.course.name }}
+                    <span class="mx-3">|</span>
+                    <i class="fas fa-user me-2"></i>{{ assignment.course.teacher.get_full_name|default:assignment.course.teacher.username }}
+                </p>
+                <p class="mb-0 opacity-75">
+                    <i class="fas fa-calendar me-2"></i>Hạn nộp: {{ assignment.due_date|date:"d/m/Y H:i" }}
+                </p>
+            </div>
+            <div>
+                <span class="badge status-badge bg-{{ status_class }}">
+                    {{ status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'dashboards:student:course_assignments' course_id=assignment.course.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại {{ assignment.course.name }}
+        </a>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboards:student:assignments' %}">Bài tập</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'dashboards:student:course_assignments' course_id=assignment.course.id %}">{{ assignment.course.name }}</a></li>
+                <li class="breadcrumb-item active">{{ assignment.title }}</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Status Alerts -->
+    {% if submission %}
+        <div class="submitted-info">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x me-3"></i>
+                <div>
+                    <h6 class="mb-1">Đã nộp bài thành công!</h6>
+                    <p class="mb-0">Thời gian nộp: {{ submission.submitted_at|date:"d/m/Y H:i" }}
+                    {% if submission.status == 'late' %} (Nộp muộn){% endif %}</p>
+                    {% if grade %}
+                    <p class="mb-0"><strong>Điểm: {{ grade.score }}/{{ assignment.max_score }}</strong></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% elif is_overdue %}
+        <div class="deadline-danger">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                <div>
+                    <h6 class="mb-1">Đã quá hạn nộp bài!</h6>
+                    <p class="mb-0">Hạn nộp: {{ assignment.due_date|date:"d/m/Y H:i" }}</p>
+                    {% if assignment.allow_late_submission %}
+                    <p class="mb-0"><small>Vẫn có thể nộp muộn</small></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% elif time_remaining %}
+        <div class="deadline-warning">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-clock fa-2x me-3"></i>
+                <div>
+                    <h6 class="mb-1">Sắp đến hạn nộp!</h6>
+                    <p class="mb-0">Còn lại: {{ time_remaining }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Assignment Details -->
+        <div class="col-lg-8">
+            <!-- Description -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Mô tả bài tập</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ assignment.description|linebreaks }}</p>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            {% if assignment.instructions %}
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-list-ul me-2"></i>Hướng dẫn làm bài</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ assignment.instructions|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Teacher's Attachment -->
+            {% if assignment.attachment %}
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-download me-2"></i>Tài liệu từ giáo viên</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fas fa-file-alt fa-2x text-primary me-3"></i>
+                            <span>Tài liệu bài tập</span>
+                        </div>
+                        <a href="{{ assignment.attachment.url }}" class="btn btn-download" download>
+                            <i class="fas fa-download me-2"></i>Tải xuống
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Submission Form -->
+            {% if can_submit %}
+            <div class="card info-card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>
+                        {% if submission %}Cập nhật bài nộp{% else %}Nộp bài tập{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'dashboards:student:assignment_submit' assignment.pk %}" id="submissionForm">
+                        {% csrf_token %}
+                        
+                        <div class="submission-form {% if can_submit and not is_overdue %}can-submit{% elif is_overdue %}overdue{% endif %}">
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h6>Kéo thả file vào đây hoặc click để chọn</h6>
+                                <p class="text-muted mb-2">
+                                    Loại file được phép: 
+                                    {% for file_type in allowed_file_types %}
+                                        {{ file_type|upper }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </p>
+                                <p class="text-muted small">Kích thước tối đa: {{ max_file_size_mb }}MB</p>
+                                <input type="file" name="assignment_file" id="assignmentFile" style="display: none;" 
+                                       accept="{% for file_type in allowed_file_types %}.{{ file_type }}{% if not forloop.last %},{% endif %}{% endfor %}" required>
+                            </div>
+                            
+                            <div class="file-info" id="fileInfo">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <i class="fas fa-file me-2"></i>
+                                        <span id="fileName"></span>
+                                        <small class="text-muted d-block" id="fileSize"></small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="removeFile">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <label for="comments" class="form-label">Ghi chú (tùy chọn)</label>
+                                <textarea class="form-control" id="comments" name="comments" rows="3" 
+                                          placeholder="Thêm ghi chú cho bài nộp của bạn...">{{ submission.comments|default:"" }}</textarea>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-submit" id="submitBtn" disabled>
+                                    <i class="fas fa-upload me-2"></i>
+                                    {% if submission %}Cập nhật bài nộp{% else %}Nộp bài tập{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Current Submission -->
+            {% if submission %}
+            <div class="card info-card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-file-check me-2"></i>Bài đã nộp</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <strong>Thời gian nộp:</strong> {{ submission.submitted_at|date:"d/m/Y H:i" }}
+                            {% if submission.status == 'late' %}<span class="badge bg-warning ms-2">Nộp muộn</span>{% endif %}
+                        </div>
+                        {% if grade %}
+                        <span class="badge bg-success">Điểm: {{ grade.score }}/{{ assignment.max_score }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if submission.comments %}
+                    <div class="mb-3">
+                        <strong>Ghi chú:</strong>
+                        <p class="text-muted mb-0">{{ submission.comments }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if grade and grade.comment %}
+                    <div class="bg-light rounded p-3">
+                        <strong>Nhận xét từ giáo viên:</strong>
+                        <p class="text-muted mb-0 mt-2">{{ grade.comment }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Assignment Info Sidebar -->
+        <div class="col-lg-4">
+            <!-- Assignment Details -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin bài tập</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Điểm tối đa:</strong>
+                        <span class="float-end">{{ assignment.max_score }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Trọng số:</strong>
+                        <span class="float-end">{{ assignment.weight|default:"1.0" }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Hạn nộp:</strong>
+                        <span class="float-end {% if is_overdue %}text-danger{% else %}text-success{% endif %}">
+                            {{ assignment.due_date|date:"d/m/Y H:i" }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Cho phép nộp muộn:</strong>
+                        <span class="float-end">
+                            {% if assignment.allow_late_submission %}
+                                <i class="fas fa-check text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times text-danger"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="mb-0">
+                        <strong>Kích thước file tối đa:</strong>
+                        <span class="float-end">{{ assignment.max_file_size }} MB</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allowed File Types -->
+            <div class="card info-card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-file me-2"></i>Loại file được phép</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap">
+                        {% for file_type in allowed_file_types %}
+                            <span class="badge bg-secondary me-1 mb-1">{{ file_type|upper }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('assignmentFile');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const removeFileBtn = document.getElementById('removeFile');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (fileInput && fileUploadArea) {
+        // Click to select file
+        fileUploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                showFileInfo(file);
+            }
+        });
+        
+        // Drag and drop
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+        });
+        
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                showFileInfo(files[0]);
+            }
+        });
+        
+        // Remove file
+        if (removeFileBtn) {
+            removeFileBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                fileInput.value = '';
+                fileInfo.style.display = 'none';
+                submitBtn.disabled = true;
+            });
+        }
+    }
+    
+    function showFileInfo(file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.style.display = 'block';
+        submitBtn.disabled = false;
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Form submission
+    const form = document.getElementById('submissionForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang tải lên...';
+        });
+    }
+});
+</script>
+{% endblock %} 

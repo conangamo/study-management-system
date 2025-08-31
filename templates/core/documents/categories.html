@@ -1,0 +1,54 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Danh mục tài liệu{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Danh mục tài liệu</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'core:document_list' %}">Tài liệu</a></li>
+                    <li class="breadcrumb-item active">Danh mục</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Danh sách danh mục</h5>
+                    
+                    <div class="row">
+                        {% for category in categories %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="{{ category.icon|default:'fas fa-folder' }}"></i>
+                                        {{ category.name }}
+                                    </h6>
+                                    <p class="card-text">{{ category.description|default:'Không có mô tả' }}</p>
+                                    <small class="text-muted">{{ category.document_count }} tài liệu</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Chưa có danh mục nào.
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,273 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ total_users }}</div>
+        <div class="stat-label">Tổng số người dùng</div>
+        <i class="fas fa-users stat-icon"></i>
+    </div>
+    
+    <div class="stat-card success">
+        <div class="stat-number">{{ students }}</div>
+        <div class="stat-label">Sinh viên</div>
+        <i class="fas fa-user-graduate stat-icon"></i>
+    </div>
+    
+    <div class="stat-card warning">
+        <div class="stat-number">{{ teachers }}</div>
+        <div class="stat-label">Giảng viên</div>
+        <i class="fas fa-chalkboard-teacher stat-icon"></i>
+    </div>
+    
+    <div class="stat-card danger">
+        <div class="stat-number">{{ admins }}</div>
+        <div class="stat-label">Quản trị viên</div>
+        <i class="fas fa-shield-alt stat-icon"></i>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-number">{{ total_courses }}</div>
+        <div class="stat-label">Môn học</div>
+        <i class="fas fa-book stat-icon"></i>
+    </div>
+    
+    <div class="stat-card success">
+        <div class="stat-number">{{ active_courses }}</div>
+        <div class="stat-label">Môn học đang hoạt động</div>
+        <i class="fas fa-check-circle stat-icon"></i>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-number">{{ total_classes }}</div>
+        <div class="stat-label">Lớp học</div>
+        <i class="fas fa-chalkboard stat-icon"></i>
+    </div>
+    
+    <div class="stat-card success">
+        <div class="stat-number">{{ active_classes }}</div>
+        <div class="stat-label">Lớp đang hoạt động</div>
+        <i class="fas fa-users stat-icon"></i>
+    </div>
+    
+    <div class="stat-card info">
+        <div class="stat-number">{{ graduated_classes }}</div>
+        <div class="stat-label">Lớp đã tốt nghiệp</div>
+        <i class="fas fa-graduation-cap stat-icon"></i>
+    </div>
+</div>
+
+<!-- Recent Users Card -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-clock me-2"></i>Người dùng mới nhất
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        {% if recent_users %}
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Người dùng</th>
+                            <th>Vai trò</th>
+                            <th>Email</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="admin-avatar me-3" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600;">{{ user.get_full_name }}</div>
+                                        <small class="text-muted">@{{ user.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if user.profile.role == 'admin' %}danger{% elif user.profile.role == 'teacher' %}warning{% else %}success{% endif %}">
+                                    {{ user.profile.get_role_display }}
+                                </span>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Hoạt động</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Khóa</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có người dùng nào</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions Card -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-bolt me-2"></i>Thao tác nhanh
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:create_student_account' %}" class="btn btn-admin btn-admin-primary w-100">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Tạo tài khoản SV
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:create_teacher_account' %}" class="btn btn-admin btn-admin-warning w-100">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    Tạo tài khoản GV
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:admin_course_create' %}" class="btn btn-admin btn-admin-success w-100">
+                    <i class="fas fa-book-plus me-2"></i>
+                    Thêm môn học
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:admin_course_list' %}" class="btn btn-admin btn-admin-info w-100">
+                    <i class="fas fa-list-ul me-2"></i>
+                    Quản lý môn học
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:admin_class_create' %}" class="btn btn-admin btn-admin-warning w-100">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    Thêm lớp học
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:admin_class_list' %}" class="btn btn-admin btn-admin-info w-100">
+                    <i class="fas fa-chalkboard me-2"></i>
+                    Quản lý lớp học
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:admin_bulk_create_classes' %}" class="btn btn-admin btn-admin-secondary w-100">
+                    <i class="fas fa-layer-group me-2"></i>
+                    Tạo hàng loạt lớp
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:bulk_create_student_accounts' %}" class="btn btn-admin btn-admin-secondary w-100">
+                    <i class="fas fa-file-csv me-2"></i>
+                    Tạo hàng loạt SV
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:bulk_create_teacher_accounts' %}" class="btn btn-admin btn-admin-secondary w-100">
+                    <i class="fas fa-file-csv me-2"></i>
+                    Tạo hàng loạt GV
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="{% url 'core:admin_user_list' %}" class="btn btn-admin btn-admin-danger w-100">
+                    <i class="fas fa-users me-2"></i>
+                    Quản lý người dùng
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Requests Card -->
+{% if pending_requests > 0 %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-clock me-2"></i>Yêu cầu chờ xử lý
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        <div class="alert alert-warning admin-alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Có <strong>{{ pending_requests }}</strong> yêu cầu tạo tài khoản sinh viên đang chờ xử lý.
+            <a href="#" class="alert-link">Xem chi tiết</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- System Info Card -->
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="admin-card-title">
+            <i class="fas fa-info-circle me-2"></i>Thông tin hệ thống
+        </h5>
+    </div>
+    <div class="admin-card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <strong>Phiên bản Django:</strong> 4.2.7
+                </div>
+                <div class="mb-3">
+                    <strong>Database:</strong> SQLite3
+                </div>
+                <div class="mb-3">
+                    <strong>Thời gian hoạt động:</strong> <span id="uptime">Đang tính...</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <strong>Bảo mật:</strong> 
+                    <span class="badge bg-success">Cao</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Trạng thái:</strong> 
+                    <span class="badge bg-success">Hoạt động</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Lần cập nhật cuối:</strong> {{ "now"|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Calculate uptime (simplified)
+    function updateUptime() {
+        const startTime = new Date('2025-08-07T00:00:00');
+        const now = new Date();
+        const diff = now - startTime;
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        document.getElementById('uptime').textContent = `${days} ngày, ${hours} giờ, ${minutes} phút`;
+    }
+    
+    updateUptime();
+    setInterval(updateUptime, 60000); // Update every minute
+</script>
+{% endblock %} 

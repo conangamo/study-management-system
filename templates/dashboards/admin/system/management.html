@@ -1,0 +1,25 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}System Management{% endblock %}
+
+{% block page_title %}Quản Lý Hệ Thống{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="text-muted">
+                    <i class="bi bi-gear fs-1 mb-3"></i>
+                    <h4>System Management</h4>
+                    <p>Trang quản lý hệ thống đang được phát triển.</p>
+                    <a href="{% url 'core:dashboards:admin:dashboard' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> Quay về Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

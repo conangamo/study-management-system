@@ -1,0 +1,311 @@
+{% extends 'dashboards/base.html' %}
+{% load static %}
+
+{% block title %}{{ assignment.title }} - Chi tiết bài tập{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+    }
+    .assignment-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    .info-card {
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+    .submission-item {
+        border-left: 4px solid #dee2e6;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border-radius: 0 8px 8px 0;
+    }
+    .submission-item.graded {
+        border-left-color: #28a745;
+    }
+    .submission-item.pending {
+        border-left-color: #ffc107;
+    }
+    .submission-item.late {
+        border-left-color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="assignment-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-2">{{ assignment.title }}</h1>
+                <p class="mb-0 opacity-75">
+                    <i class="fas fa-book me-2"></i>{{ assignment.course.name }}
+                    <span class="mx-3">|</span>
+                    <i class="fas fa-calendar me-2"></i>Hạn nộp: {{ assignment.due_date|date:"d/m/Y H:i" }}
+                </p>
+            </div>
+            <div>
+                <span class="badge status-badge 
+                    {% if assignment.status == 'active' %}bg-success
+                    {% elif assignment.status == 'draft' %}bg-secondary
+                    {% elif assignment.status == 'closed' %}bg-danger
+                    {% else %}bg-warning{% endif %}">
+                    {{ assignment.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'dashboards:teacher:assignment_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+        <div class="btn-group">
+            <a href="{% url 'dashboards:teacher:assignment_edit' assignment.pk %}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-2"></i>Chỉnh sửa
+            </a>
+            <a href="{% url 'dashboards:teacher:assignment_submissions' assignment.pk %}" class="btn btn-primary">
+                <i class="fas fa-list me-2"></i>Xem bài nộp ({{ total_submissions }})
+            </a>
+            {% if assignment.pending_grades_count > 0 %}
+            <a href="{% url 'dashboards:teacher:assignment_grading' assignment.pk %}" class="btn btn-success">
+                <i class="fas fa-star me-2"></i>Chấm điểm ({{ assignment.pending_grades_count }})
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Statistics Cards -->
+        <div class="col-12 mb-4">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card stats-card text-center">
+                        <div class="card-body">
+                            <h3 class="mb-0">{{ total_submissions }}</h3>
+                            <small>Tổng bài nộp</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white text-center">
+                        <div class="card-body">
+                            <h3 class="mb-0">{{ graded_submissions }}</h3>
+                            <small>Đã chấm điểm</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white text-center">
+                        <div class="card-body">
+                            <h3 class="mb-0">{{ pending_submissions }}</h3>
+                            <small>Chưa chấm</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white text-center">
+                        <div class="card-body">
+                            <h3 class="mb-0">{{ late_submissions }}</h3>
+                            <small>Nộp muộn</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Assignment Details -->
+        <div class="col-lg-8">
+            <!-- Description -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Mô tả bài tập</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ assignment.description|linebreaks }}</p>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            {% if assignment.instructions %}
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-list-ul me-2"></i>Hướng dẫn làm bài</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ assignment.instructions|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Attachment -->
+            {% if assignment.attachment %}
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-paperclip me-2"></i>File đính kèm</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ assignment.attachment.url }}" class="btn btn-outline-primary" download>
+                        <i class="fas fa-download me-2"></i>Tải xuống file đính kèm
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Submissions -->
+            {% if recent_submissions %}
+            <div class="card info-card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Bài nộp gần đây</h5>
+                </div>
+                <div class="card-body">
+                    {% for submission in recent_submissions %}
+                    <div class="submission-item 
+                        {% if submission.status == 'graded' %}graded
+                        {% elif submission.status == 'late' %}late
+                        {% else %}pending{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ submission.student.get_full_name }}</strong>
+                                <small class="text-muted d-block">{{ submission.submitted_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <div>
+                                <span class="badge 
+                                    {% if submission.status == 'graded' %}bg-success
+                                    {% elif submission.status == 'late' %}bg-danger
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ submission.get_status_display }}
+                                </span>
+                                {% if submission.is_graded %}
+                                <span class="badge bg-info ms-1">{{ submission.grade }}/{{ assignment.max_score }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'dashboards:teacher:assignment_submissions' assignment.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>Xem tất cả bài nộp
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Assignment Info Sidebar -->
+        <div class="col-lg-4">
+            <!-- Assignment Settings -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Cài đặt bài tập</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Điểm tối đa:</strong>
+                        <span class="float-end">{{ assignment.max_score }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Kích thước file tối đa:</strong>
+                        <span class="float-end">{{ assignment.max_file_size }} MB</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Cho phép nộp muộn:</strong>
+                        <span class="float-end">
+                            {% if assignment.allow_late_submission %}
+                                <i class="fas fa-check text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times text-danger"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Hiển thị cho sinh viên:</strong>
+                        <span class="float-end">
+                            {% if assignment.is_visible_to_students %}
+                                <i class="fas fa-check text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times text-danger"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="mb-0">
+                        <strong>Loại file được phép:</strong>
+                        <div class="mt-2">
+                            {% for file_type in assignment.allowed_file_types %}
+                                <span class="badge bg-secondary me-1">{{ file_type|upper }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grade Statistics -->
+            {% if average_grade %}
+            <div class="card info-card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Thống kê điểm</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Điểm trung bình:</strong>
+                        <span class="float-end">{{ average_grade|floatformat:2 }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Điểm cao nhất:</strong>
+                        <span class="float-end">{{ highest_grade|floatformat:2 }}</span>
+                    </div>
+                    <div class="mb-0">
+                        <strong>Điểm thấp nhất:</strong>
+                        <span class="float-end">{{ lowest_grade|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Assignment Timeline -->
+            <div class="card info-card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Thời gian</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Ngày tạo:</strong>
+                        <span class="float-end">{{ assignment.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Cập nhật cuối:</strong>
+                        <span class="float-end">{{ assignment.updated_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div class="mb-0">
+                        <strong>Hạn nộp:</strong>
+                        <span class="float-end 
+                            {% if assignment.is_overdue %}text-danger{% else %}text-success{% endif %}">
+                            {{ assignment.due_date|date:"d/m/Y H:i" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

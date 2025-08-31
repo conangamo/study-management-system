@@ -1,0 +1,13 @@
+{% extends 'dashboards/base.html' %}
+{% block title %}Xóa môn học{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h3>Xóa môn học</h3>
+  <p>Bạn có chắc chắn muốn xóa môn học "{{ object.name }}" ({{ object.code }}) không? Hành động này không thể hoàn tác.</p>
+  <form method="post">
+    {% csrf_token %}
+    <a href="{% url 'dashboards:admin:courses:list' %}" class="btn btn-secondary">Hủy</a>
+    <button type="submit" class="btn btn-danger">Xóa</button>
+  </form>
+</div>
+{% endblock %} 

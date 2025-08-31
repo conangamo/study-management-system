@@ -1,0 +1,117 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Thống kê tài liệu{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Thống kê tài liệu</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'core:document_list' %}">Tài liệu</a></li>
+                    <li class="breadcrumb-item active">Thống kê</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-primary">{{ stats.total_documents }}</h3>
+                    <p>Tổng số tài liệu</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-success">{{ stats.published_documents }}</h3>
+                    <p>Tài liệu đã xuất bản</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-info">{{ stats.total_downloads }}</h3>
+                    <p>Lượt tải xuống</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="text-warning">{{ stats.total_categories }}</h3>
+                    <p>Danh mục</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tài liệu được tải nhiều nhất</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Tài liệu</th>
+                                    <th>Lượt tải</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in top_documents %}
+                                <tr>
+                                    <td>{{ doc.title }}</td>
+                                    <td>{{ doc.download_count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">Chưa có dữ liệu</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tài liệu mới nhất</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Tài liệu</th>
+                                    <th>Ngày tải lên</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in recent_documents %}
+                                <tr>
+                                    <td>{{ doc.title }}</td>
+                                    <td>{{ doc.created_at|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">Chưa có dữ liệu</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

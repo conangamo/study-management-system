@@ -1,0 +1,365 @@
+{% extends 'dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Danh sách bài tập - Dashboard Giáo viên{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-card {
+        transition: transform 0.2s;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .assignment-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .status-badge {
+        font-size: 0.8rem;
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+    .search-form {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .btn-create {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+    }
+    .btn-create:hover {
+        background: linear-gradient(135deg, #218838 0%, #1a9876 100%);
+        color: white;
+    }
+    .btn-home {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        border: none;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-home:hover {
+        background: linear-gradient(135deg, #5a6268 0%, #3d4142 100%);
+        color: white;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'core:home' %}" class="btn btn-home me-3">
+                <i class="fas fa-home me-2"></i>Trang chủ
+            </a>
+            <div>
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-tasks me-2"></i>Quản lý bài tập
+                </h1>
+                <p class="text-muted mb-0">Tạo và quản lý bài tập cho các môn học của bạn</p>
+            </div>
+        </div>
+        <a href="{% url 'dashboards:teacher:assignment_create' %}" class="btn btn-create">
+            <i class="fas fa-plus me-2"></i>Tạo bài tập mới
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                Tổng bài tập
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold">{{ total_assignments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Đang hoạt động
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_assignments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Bản nháp
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ draft_assignments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-edit fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Đã đóng
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ closed_assignments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-lock fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="search-form">
+        <form method="GET" id="searchForm">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="search" class="form-label">Tìm kiếm</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ request.GET.search }}" placeholder="Tên bài tập, môn học...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Trạng thái</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Tất cả</option>
+                            <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Bản nháp</option>
+                            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Hoạt động</option>
+                            <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>Đã đóng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="course" class="form-label">Môn học</label>
+                        <select class="form-select" id="course" name="course">
+                            <option value="">Tất cả môn học</option>
+                            {% for course in user.teaching_courses.all %}
+                                <option value="{{ course.id }}" {% if request.GET.course|add:0 == course.id %}selected{% endif %}>
+                                    {{ course.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Assignments List -->
+    {% if assignments %}
+    <div class="row">
+        {% for assignment in assignments %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card assignment-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ assignment.title|truncatechars:30 }}</h5>
+                    <span class="badge 
+                        {% if assignment.status == 'draft' %}bg-secondary
+                        {% elif assignment.status == 'active' %}bg-success
+                        {% elif assignment.status == 'closed' %}bg-warning
+                        {% else %}bg-info{% endif %} status-badge">
+                        {{ assignment.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted mb-2">
+                        <i class="fas fa-book me-1"></i>{{ assignment.course.name }}
+                    </p>
+                    <p class="card-text">{{ assignment.description|truncatechars:100 }}</p>
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Hạn nộp</small>
+                            <div class="fw-bold">{{ assignment.due_date|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Điểm tối đa</small>
+                            <div class="fw-bold">{{ assignment.max_score }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if assignment.attachment %}
+                    <div class="mb-3">
+                        <i class="fas fa-paperclip text-info me-1"></i>
+                        <small class="text-muted">Có file đính kèm</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <small class="text-muted">Bài nộp</small>
+                            <div class="fw-bold">{{ assignment.submission_count }}</div>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Đã chấm</small>
+                            <div class="fw-bold">{{ assignment.graded_count }}</div>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Chưa chấm</small>
+                            <div class="fw-bold">{{ assignment.pending_grades_count }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="btn-group w-100" role="group">
+                        <a href="{% url 'dashboards:teacher:assignment_detail' assignment.pk %}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> Chi tiết
+                        </a>
+                        <a href="{% url 'dashboards:teacher:assignment_edit' assignment.pk %}" 
+                           class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <a href="{% url 'dashboards:teacher:assignment_submissions' assignment.pk %}" 
+                           class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-list"></i> Bài nộp
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.course %}&course={{ request.GET.course }}{% endif %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <i class="fas fa-tasks fa-4x text-muted mb-4"></i>
+        <h4 class="text-muted">Chưa có bài tập nào</h4>
+        <p class="text-muted">Tạo bài tập đầu tiên để bắt đầu quản lý học tập</p>
+        <a href="{% url 'dashboards:teacher:assignment_create' %}" class="btn btn-create">
+            <i class="fas fa-plus me-2"></i>Tạo bài tập mới
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto submit form when filter changes
+    const statusSelect = document.getElementById('status');
+    const courseSelect = document.getElementById('course');
+    
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            document.getElementById('searchForm').submit();
+        });
+    }
+    
+    if (courseSelect) {
+        courseSelect.addEventListener('change', function() {
+            document.getElementById('searchForm').submit();
+        });
+    }
+    
+    // Search on Enter
+    const searchInput = document.getElementById('search');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('searchForm').submit();
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

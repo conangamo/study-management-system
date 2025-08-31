@@ -1,106 +1,502 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Học Tập - Trang Chủ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'core:home' %}">
-                <i class="fas fa-graduation-cap me-2"></i>
-                Quản Lý Học Tập
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-book me-1"></i>Khóa Học</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-tasks me-1"></i>Bài Tập</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-chart-line me-1"></i>Điểm Số</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-sticky-note me-1"></i>Ghi Chú</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/"><i class="fas fa-user me-1"></i>Đăng Nhập</a>
-                    </li>
-                </ul>
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Trang chủ - Study Management{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.dashboard-card .card-body {
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card .card-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+}
+
+.dashboard-card:hover .card-body::before {
+    left: 100%;
+}
+
+.dashboard-card small {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover small {
+    opacity: 1;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(13, 110, 253, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+}
+
+.btn-success {
+    animation: pulse 2s infinite;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Welcome Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-white mb-3">
+                <i class="fas fa-graduation-cap me-3"></i>
+                Chào mừng đến với Study Management
+            </h1>
+            <p class="lead text-white-50 mb-4">
+                Hệ thống quản lý học tập hiện đại cho sinh viên
+            </p>
+            <div id="authButtons" class="d-none">
+                <a href="{% url 'core:login_page' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                </a>
+            </div>
+            <div id="userWelcome" class="d-none">
+                <h3 class="text-white mb-3">Chào mừng trở lại, <span id="userName">User</span>!</h3>
+                <div id="dashboardButtons">
+                    <!-- Buttons will be dynamically added based on user role -->
+                </div>
+                <button onclick="logout()" class="btn btn-outline-light btn-lg mt-2">
+                    <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                </button>
+            </div>
+            
+            <!-- Server-side user info (hidden by default) -->
+            {% if user.is_authenticated %}
+            <div id="serverUserInfo" style="display: none;" 
+                 data-username="{{ user.username }}"
+                 data-first-name="{{ user.first_name }}"
+                 data-last-name="{{ user.last_name }}"
+                 data-email="{{ user.email }}"
+                 data-role="{% if user.profile %}{{ user.profile.role }}{% else %}student{% endif %}">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="{% url 'core:student_course_list' %}" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Đăng ký môn học</h5>
+                    <p class="card-text">Xem danh sách môn học và đăng ký các môn học phù hợp</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
+                </div>
             </div>
         </div>
-    </nav>
-
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-12">
-                <div class="jumbotron text-center">
-                    <h1 class="display-4">Chào mừng đến với Hệ Thống Quản Lý Học Tập</h1>
-                    <p class="lead">Quản lý khóa học, bài tập, điểm số và ghi chú một cách hiệu quả</p>
-                    <hr class="my-4">
-                    <p>Bắt đầu quản lý việc học của bạn ngay hôm nay!</p>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="{% url 'core:student_enrolled_courses' %}" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Môn học đã đăng ký</h5>
+                    <p class="card-text">Xem và quản lý các môn học bạn đã đăng ký</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
                 </div>
             </div>
         </div>
-
-        <div class="row mt-5">
-            <div class="col-md-3 mb-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-book fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">Khóa Học</h5>
-                        <p class="card-text">Quản lý các môn học và lịch học của bạn</p>
-                        <a href="#" class="btn btn-primary">Xem Khóa Học</a>
-                    </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="/dashboard/student/courses/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-book fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Quản lý khóa học</h5>
+                    <p class="card-text">Theo dõi lịch học, thông tin môn học và tiến độ học tập</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-tasks fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">Bài Tập</h5>
-                        <p class="card-text">Theo dõi deadline và trạng thái bài tập</p>
-                        <a href="#" class="btn btn-success">Xem Bài Tập</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
-                        <h5 class="card-title">Điểm Số</h5>
-                        <p class="card-text">Theo dõi điểm số và tiến độ học tập</p>
-                        <a href="#" class="btn btn-info">Xem Điểm</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <i class="fas fa-sticky-note fa-3x text-warning mb-3"></i>
-                        <h5 class="card-title">Ghi Chú</h5>
-                        <p class="card-text">Lưu trữ ghi chú và ý tưởng quan trọng</p>
-                        <a href="#" class="btn btn-warning">Xem Ghi Chú</a>
-                    </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="/dashboard/student/assignments/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Quản lý bài tập</h5>
+                    <p class="card-text">Theo dõi deadline, trạng thái bài tập và nhắc nhở</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer class="bg-dark text-white text-center py-4 mt-5">
-        <div class="container">
-            <p>&copy; 2024 Hệ Thống Quản Lý Học Tập. Phát triển với Django & Bootstrap.</p>
+    <!-- Second Row of Features -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="/dashboard/student/grades/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x text-danger mb-3"></i>
+                    <h5 class="card-title">Theo dõi điểm số</h5>
+                    <p class="card-text">Xem điểm số, tính điểm trung bình và phân tích</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
+                </div>
+            </div>
         </div>
-    </footer>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="{% url 'core:document_list' %}" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-alt fa-3x text-secondary mb-3"></i>
+                    <h5 class="card-title">Tài liệu học tập</h5>
+                    <p class="card-text">Truy cập và tải về tài liệu học tập từ các môn học</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="/dashboard/student/notes/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-sticky-note fa-3x text-dark mb-3"></i>
+                    <h5 class="card-title">Ghi chú cá nhân</h5>
+                    <p class="card-text">Tạo và quản lý ghi chú học tập cá nhân</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-lg dashboard-card" data-dashboard="{% url 'core:profile_page' %}" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <i class="fas fa-user fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Hồ sơ cá nhân</h5>
+                    <p class="card-text">Cập nhật thông tin cá nhân và cài đặt tài khoản</p>
+                    <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Click để truy cập</small>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html> 
+    <!-- Quick Stats -->
+    <div class="row mb-5" id="quickStats" style="display: none;">
+        <div class="col-12">
+            <h3 class="text-white mb-4">
+                <i class="fas fa-chart-line me-2"></i>Thống kê nhanh
+            </h3>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white dashboard-card" data-dashboard="/dashboard/student/courses/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <h4 class="card-title">
+                        <i class="fas fa-book me-2"></i>
+                        <span id="courseCount">0</span>
+                    </h4>
+                    <p class="card-text">Khóa học</p>
+                    <small><i class="fas fa-mouse-pointer me-1"></i>Click để xem</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white dashboard-card" data-dashboard="/dashboard/student/assignments/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <h4 class="card-title">
+                        <i class="fas fa-tasks me-2"></i>
+                        <span id="assignmentCount">0</span>
+                    </h4>
+                    <p class="card-text">Bài tập</p>
+                    <small><i class="fas fa-mouse-pointer me-1"></i>Click để xem</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white dashboard-card" data-dashboard="/dashboard/student/grades/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <h4 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        <span id="gradeCount">0</span>
+                    </h4>
+                    <p class="card-text">Điểm số</p>
+                    <small><i class="fas fa-mouse-pointer me-1"></i>Click để xem</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white dashboard-card" data-dashboard="/dashboard/student/notes/" style="cursor: pointer; transition: transform 0.2s;">
+                <div class="card-body text-center">
+                    <h4 class="card-title">
+                        <i class="fas fa-sticky-note me-2"></i>
+                        <span id="noteCount">0</span>
+                    </h4>
+                    <p class="card-text">Ghi chú</p>
+                    <small><i class="fas fa-mouse-pointer me-1"></i>Click để xem</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row" id="recentActivity" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>Hoạt động gần đây
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="activityList">
+                        <p class="text-muted text-center">Chưa có hoạt động nào</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const authButtons = document.getElementById('authButtons');
+    const userWelcome = document.getElementById('userWelcome');
+    const userName = document.getElementById('userName');
+    const quickStats = document.getElementById('quickStats');
+    const recentActivity = document.getElementById('recentActivity');
+
+    // Check authentication status
+    function checkAuthStatus() {
+        const userInfo = localStorage.getItem('user_info');
+        const sessionInfo = localStorage.getItem('session_info');
+        const serverUserInfo = document.getElementById('serverUserInfo');
+
+        // Check if user is authenticated via server-side
+        if (serverUserInfo) {
+            const user = {
+                username: serverUserInfo.dataset.username,
+                first_name: serverUserInfo.dataset.firstName,
+                last_name: serverUserInfo.dataset.lastName,
+                email: serverUserInfo.dataset.email,
+                profile: {
+                    role: serverUserInfo.dataset.role
+                }
+            };
+            
+            // Hiển thị họ tên đầy đủ của user
+            const fullName = `${user.first_name} ${user.last_name}`.trim();
+            userName.textContent = fullName || user.username || 'User';
+            
+            // Create dashboard buttons based on user role
+            createDashboardButtons(user);
+            
+            authButtons.classList.add('d-none');
+            userWelcome.classList.remove('d-none');
+            quickStats.style.display = 'block';
+            recentActivity.style.display = 'block';
+            loadDashboardData();
+            setupDashboardCards(user);
+            return;
+        }
+
+        // Fallback to client-side authentication
+        if (userInfo && sessionInfo) {
+            try {
+                const user = JSON.parse(userInfo);
+                const session = JSON.parse(sessionInfo);
+                
+                // Hiển thị họ tên đầy đủ của user
+                const fullName = `${user.first_name} ${user.last_name}`.trim();
+                userName.textContent = fullName || user.username || 'User';
+                
+                // Create dashboard buttons based on user role
+                createDashboardButtons(user);
+                
+                authButtons.classList.add('d-none');
+                userWelcome.classList.remove('d-none');
+                quickStats.style.display = 'block';
+                recentActivity.style.display = 'block';
+                loadDashboardData();
+                setupDashboardCards(user);
+            } catch (e) {
+                console.error('Error parsing user info:', e);
+                clearAuth();
+            }
+        } else {
+            authButtons.classList.remove('d-none');
+            userWelcome.classList.add('d-none');
+            quickStats.style.display = 'none';
+            recentActivity.style.display = 'none';
+            setupDashboardCards(null);
+        }
+    }
+
+    // Create dashboard buttons based on user role
+    function createDashboardButtons(user) {
+        const dashboardButtons = document.getElementById('dashboardButtons');
+        dashboardButtons.innerHTML = ''; // Clear existing buttons
+        
+        const userRole = getUserRole(user);
+        
+        if (userRole === 'admin') {
+            dashboardButtons.innerHTML = `
+                <a href="/dashboard/admin/" class="btn btn-danger btn-lg me-3">
+                    <i class="fas fa-cogs me-2"></i>Admin Dashboard
+                </a>
+                <a href="/dashboard/teacher/" class="btn btn-success btn-lg me-3">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Dashboard
+                </a>
+            `;
+        } else if (userRole === 'teacher') {
+            dashboardButtons.innerHTML = `
+                <a href="/dashboard/teacher/" class="btn btn-success btn-lg me-3">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Dashboard
+                </a>
+            `;
+        } else {
+            // Student role
+            dashboardButtons.innerHTML = `
+                <a href="/dashboard/student/" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-user-graduate me-2"></i>Student Dashboard
+                </a>
+            `;
+        }
+    }
+
+    // Setup dashboard cards based on user role
+    function setupDashboardCards(user) {
+        const dashboardCards = document.querySelectorAll('.dashboard-card');
+        
+        dashboardCards.forEach(card => {
+            // Remove existing click listeners
+            card.replaceWith(card.cloneNode(true));
+        });
+
+        // Re-attach listeners to cloned elements
+        document.querySelectorAll('.dashboard-card').forEach(card => {
+            card.addEventListener('click', function() {
+                let dashboardUrl = card.getAttribute('data-dashboard');
+                
+                // Kiểm tra nếu là URL tài liệu
+                if (dashboardUrl.includes('/documents/')) {
+                    window.location.href = dashboardUrl;
+                    return;
+                }
+                
+                if (user) {
+                    // Get user role and adjust URL accordingly
+                    const userRole = getUserRole(user);
+                    
+                    if (userRole === 'teacher') {
+                        dashboardUrl = dashboardUrl.replace('/student/', '/teacher/');
+                    } else if (userRole === 'admin') {
+                        dashboardUrl = dashboardUrl.replace('/student/', '/admin/');
+                        // Admin URLs are different, map them appropriately
+                        if (dashboardUrl.includes('/courses/')) {
+                            dashboardUrl = '/dashboard/admin/system/';
+                        } else if (dashboardUrl.includes('/assignments/')) {
+                            dashboardUrl = '/dashboard/admin/analytics/';
+                        } else if (dashboardUrl.includes('/grades/')) {
+                            dashboardUrl = '/dashboard/admin/analytics/';
+                        } else if (dashboardUrl.includes('/notes/')) {
+                            dashboardUrl = '/dashboard/admin/users/';
+                        }
+                    }
+                    
+                    // Navigate to dashboard
+                    window.location.href = dashboardUrl;
+                } else {
+                    // Not logged in, redirect to login
+                    window.location.href = "{% url 'core:login_page' %}";
+                }
+            });
+
+            // Add hover effect
+            card.addEventListener('mouseenter', function() {
+                card.style.transform = 'translateY(-5px)';
+                card.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = '';
+            });
+        });
+    }
+
+    // Get user role from user object
+    function getUserRole(user) {
+        // Check if user is superuser
+        if (user.is_superuser) {
+            return 'admin';
+        }
+        
+        // Check profile role if available
+        if (user.profile && user.profile.role) {
+            return user.profile.role;
+        }
+        
+        // Default to student
+        return 'student';
+    }
+
+    // Logout function
+    window.logout = function() {
+        if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+            clearAuth();
+            window.location.reload();
+        }
+    }
+
+    // Clear authentication
+    function clearAuth() {
+        localStorage.removeItem('user_info');
+        localStorage.removeItem('session_info');
+        checkAuthStatus();
+    }
+
+    // Load dashboard data
+    async function loadDashboardData() {
+        const sessionInfo = localStorage.getItem('session_info');
+        if (!sessionInfo) return;
+
+        try {
+            // Load stats using session authentication
+            const [coursesRes, assignmentsRes, gradesRes, notesRes] = await Promise.all([
+                fetch('/api/courses/'),
+                fetch('/api/assignments/'),
+                fetch('/api/grades/'),
+                fetch('/api/notes/')
+            ]);
+
+            if (coursesRes.ok) {
+                const courses = await coursesRes.json();
+                document.getElementById('courseCount').textContent = courses.length;
+            }
+            if (assignmentsRes.ok) {
+                const assignments = await assignmentsRes.json();
+                document.getElementById('assignmentCount').textContent = assignments.length;
+            }
+            if (gradesRes.ok) {
+                const grades = await gradesRes.json();
+                document.getElementById('gradeCount').textContent = grades.length;
+            }
+            if (notesRes.ok) {
+                const notes = await notesRes.json();
+                document.getElementById('noteCount').textContent = notes.length;
+            }
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+        }
+    }
+
+    // Initialize
+    checkAuthStatus();
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,299 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block page_title %}Dashboard Sinh Viên{% endblock %}
+
+{% block content %}
+<!-- Welcome Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-mortarboard fs-1 me-3"></i>
+                    <div>
+                        <h4 class="mb-1">Chào mừng trở lại, {{ student.get_full_name|default:student.username }}!</h4>
+                        <p class="mb-0 opacity-75">Hôm nay là {{ "now"|date:"l, d/m/Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-book text-primary fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold text-muted small text-uppercase">Môn học</div>
+                        <div class="fs-4 fw-bold">{{ stats.total_courses }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-clock text-warning fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold text-muted small text-uppercase">Bài tập chưa nộp</div>
+                        <div class="fs-4 fw-bold">{{ stats.pending_assignments }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-graph-up text-success fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold text-muted small text-uppercase">Điểm trung bình</div>
+                        <div class="fs-4 fw-bold">{{ stats.average_grade }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-sticky text-info fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold text-muted small text-uppercase">Ghi chú</div>
+                        <div class="fs-4 fw-bold">{{ stats.total_notes }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning-charge me-2"></i>Truy cập nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{% url 'core:dashboards:student:courses' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-book me-2"></i>Môn học của tôi
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'core:dashboards:student:assignments' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-clipboard-check me-2"></i>Bài tập
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'core:dashboards:student:grades' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-graph-up me-2"></i>Điểm số
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'core:dashboards:student:notes' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-sticky me-2"></i>Ghi chú
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <!-- Enrolled Courses -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-book me-2"></i>Môn học đang theo học
+                </h6>
+                <a href="{% url 'core:dashboards:student:courses' %}" class="btn btn-sm btn-outline-primary">
+                    Xem tất cả
+                </a>
+            </div>
+            <div class="card-body">
+                {% for enrollment in enrolled_courses|slice:":5" %}
+                <div class="d-flex align-items-center mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-book text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">
+                            <a href="{% url 'core:dashboards:student:course_detail' enrollment.course.id %}" 
+                               class="text-decoration-none">
+                                {{ enrollment.course.name }}
+                            </a>
+                        </h6>
+                        <small class="text-muted">
+                            {{ enrollment.course.code }} - {{ enrollment.course.teacher.get_full_name }}
+                        </small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-success">Đang học</span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    <p>Bạn chưa đăng ký môn học nào</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upcoming Assignments -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>Bài tập sắp đến hạn
+                </h6>
+                <a href="{% url 'core:dashboards:student:assignments' %}" class="btn btn-sm btn-outline-warning">
+                    Xem tất cả
+                </a>
+            </div>
+            <div class="card-body">
+                {% for assignment in upcoming_assignments %}
+                <div class="d-flex align-items-center mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="flex-shrink-0">
+                        <div class="bg-warning bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-clipboard-check text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-1">
+                            <a href="{% url 'core:dashboards:student:assignment_detail' assignment.id %}" 
+                               class="text-decoration-none">
+                                {{ assignment.title }}
+                            </a>
+                        </h6>
+                        <small class="text-muted">
+                            {{ assignment.course.name }} - Hạn: {{ assignment.due_date|date:"d/m/Y H:i" }}
+                        </small>
+                    </div>
+                    <div class="flex-shrink-0">
+                        {% if assignment.due_date|timeuntil %}
+                        <span class="badge bg-warning">{{ assignment.due_date|timeuntil }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">Quá hạn</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-check-circle fs-1 d-block mb-2"></i>
+                    <p>Không có bài tập sắp đến hạn</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Grades -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Điểm số gần đây
+                </h6>
+                <a href="{% url 'core:dashboards:student:grades' %}" class="btn btn-sm btn-outline-success">
+                    Xem tất cả
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_grades %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Môn học</th>
+                                <th>Bài tập</th>
+                                <th>Điểm</th>
+                                <th>Ngày</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grade in recent_grades %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'core:dashboards:student:course_detail' grade.course.id %}" 
+                                       class="text-decoration-none">
+                                        {{ grade.course.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if grade.assignment %}
+                                    <a href="{% url 'core:dashboards:student:assignment_detail' grade.assignment.id %}" 
+                                       class="text-decoration-none">
+                                        {{ grade.assignment.title }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">Điểm tổng kết</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if grade.score >= 8 %}bg-success{% elif grade.score >= 6.5 %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ grade.score }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ grade.created_at|date:"d/m/Y" }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-graph-up fs-1 d-block mb-2"></i>
+                    <p>Chưa có điểm số nào</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
